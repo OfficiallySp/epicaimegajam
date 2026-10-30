@@ -1,0 +1,42 @@
+# Unreal Engine — the repo root is the project root (MegaJam26.uproject lives here)
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Plugins/**/Binaries/
+Plugins/**/Intermediate/
+# Baked-lighting data: we use Lumen (dynamic), never rely on baked lighting
+*_BuiltData.uasset
+
+# Generated IDE / project files (regenerate: UnrealBuildTool -projectfiles)
+.vs/
+.idea/
+.vscode/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.xcodeproj
+*.xcworkspace
+*.code-workspace
+
+# Packaging output and logs (tools/package.ps1, zip-check, upload)
+dist/
+*.log
+
+# The throwaway Sandbox project lives outside the repo; belt and braces
+Sandbox/
+
+# OS / tools
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Claude Code local-only settings and secrets
+.claude/settings.local.json
+.env
+*.secret
+butler_creds
