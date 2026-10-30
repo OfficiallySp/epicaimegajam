@@ -1,6 +1,6 @@
 # Hands-on learning: Wed 4 to Sat 7 Nov, 2–3 h per day, then timed drills
 
-Rules: a separate throwaway project `C:\Dev\Sandbox` (Third Person, C++, its own `.mcp.json` and a copy of `tools/`).
+Rules: a separate throwaway project `C:\Users\Shane\Sandbox` (Third Person, C++, its own `.mcp.json` and a copy of `tools/`).
 Claude Code is the tutor: start each session with "teach me X in the Sandbox by making me do it; explain each step in two
 sentences". **Every session ends with a packaged build** (`.\tools\package.ps1` from the Sandbox copy of tools).
 Nothing from the Sandbox is reused in the jam project unless it is declared.
@@ -43,7 +43,7 @@ Done when: the drill table is filled and a packaged build has audio. Notes:
 | Drill | Prompt gist | Target | Actual | Notes |
 |---|---|---|---|---|
 | MCP level blockout from a paragraph | "Build a greybox arena 40×40 m with three rooms, cover, a start and an exit, lit with one directional light" | 20 min | | |
-| Python batch import | "Import these 20 FBX files from `C:\Dev\assets\`, fix scale to cm, generate simple collision, enable Nanite on meshes over 10k tris, put them in Content/External/Test" | 15 min | | |
+| Python batch import | "Import these 20 FBX files from `C:\Users\Shane\assets\`, fix scale to cm, generate simple collision, enable Nanite on meshes over 10k tris, put them in Content/External/Test" | 15 min | | |
 | C++ feature end to end | "Add a collectible system: component on the character counts pickups, BP_Pickup actor, HUD shows the count, event when all are collected" | 30 min | | |
 | Package, zip, upload | `package.ps1` → `zip-check.ps1` → fresh-folder run → `upload.ps1` | 25 min | | |
 | Full editor rebuild (editor closed) | `Build.bat MegaJam26Editor` | 5 min | | |

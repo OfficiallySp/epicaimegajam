@@ -18,9 +18,10 @@ Four full working days Thu–Sun; the Monday small-hours deadline is an emergenc
 | Date | Block | What | Done when |
 |---|---|---|---|
 | Fri 30 Oct | A | Readiness plan; repo scaffolded (CLAUDE.md, docs, tools, devlog template); Mac tools (git-lfs, butler); private GitHub repo | repo pushed |
+| Fri 30 Oct, evening | B (started) | PC online early: repo cloned to `C:\Users\Shane\epicaimegajam`, tools inventoried, butler installed, git configured; UE 5.8.4 and VS 2026 (MSVC 14.50) still to install | `docs/pc-bringup.md` sections 0–2 |
 | Sat 31 Oct – Sun 1 Nov | A | Accounts (~1 h): Epic 18+, itch join jam, Official Rules PDF, Fab linked, GitHub LFS data pack, Epic forums, AI tools (Tripo, Meshy, Rodin, ElevenLabs, Suno/Udio, image model, Blockade Labs). Watch-only learning (~4 h): MCP setup video + livestream, *Your First Hour in UE5*, *Your First Game in UE5*, packaging doc | `docs/rules-summary.md` open items ticked |
-| Mon 2 Nov | buffer | Remaining accounts; team name decided; PC arrives? | |
-| **Tue 3 Nov** | B | **PC bring-up** (4–5 h): drivers, installs, UE 5.8.4, VS 2022, repo clone, project creation, MCP, smoke tests, package, zip, upload, video, devlog | every box in `docs/pc-bringup.md` |
+| Mon 2 Nov | buffer | Remaining accounts; team name decided; engine and VS 2026 installed if not done earlier | |
+| **Tue 3 Nov** | B | **PC bring-up** (4–5 h): drivers, remaining installs, UE 5.8.4, VS 2026, project creation, MCP, smoke tests, package, zip, upload, video, devlog | every box in `docs/pc-bringup.md` |
 | Wed 4 – Sat 7 Nov | C | Hands-on learning, 2–3 h/day in a throwaway Sandbox project; each session ends with a packaged build; timed agent drills on Sat | `docs/learning-plan.md` times filled |
 | Sun 8 Nov | D | Asset pipeline tests (~4 h): one asset per AI tool into UE; Fab shortlist saved | `docs/asset-pipeline.md` filled |
 | Mon 9 Nov | E | Rehearsal mini-jam, 5 h hard stop: random theme, compressed runbook, zip on the draft page + 30 s video + devlog post; retro into scripts and runbook | retro applied |

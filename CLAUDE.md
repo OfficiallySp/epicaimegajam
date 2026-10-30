@@ -21,7 +21,8 @@ the editor-generated `.mcp.json` and this file all live here, and `claude` is la
 
 ## Machines
 - **PC, Framework Desktop (Ryzen AI Max+ 395, Radeon 8060S, 64 GB, Windows 11):** engine, editor, Unreal MCP, packaging.
-  Engine: `C:\Program Files\Epic Games\UE_5.8`. Project: `C:\Dev\MegaJam26` (this repo).
+  Engine: `C:\Program Files\Epic Games\UE_5.8`. Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
+  Compiler: Visual Studio 2026 with the **MSVC 14.50** toolset (5.8's recommended version; 14.51 fails on engine headers).
 - **Mac mini (M4, 16 GB):** docs, dev log, scripts, video editing, itch uploads, second Claude window. No engine installed.
 
 ## Project conventions

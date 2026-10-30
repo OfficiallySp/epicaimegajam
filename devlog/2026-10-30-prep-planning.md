@@ -18,6 +18,12 @@ Arrive at the jam with a rehearsed pipeline, so that all four jam days go into t
 - Scaffolded this repo: `CLAUDE.md` with the agent rules, docs for rules, timeline, PC bring-up, learning plan, asset
   pipeline, runbook, submission checklist, declarations and this dev log; scripts to package, zip-check and upload.
 - Installed git-lfs and butler on the Mac; private GitHub repo with LFS for Unreal assets.
+- Evening: the PC came online a few days early. Cloned the repo with T3 Code to `C:\Users\Shane\epicaimegajam`
+  and a Claude thread on the PC inventoried it: git, GitHub CLI, Claude Code, PowerShell 7, ffmpeg, OBS, Blender and
+  the Epic launcher are there; no engine yet and only Visual Studio Build Tools 2026 with MSVC 14.51. Epic's docs say
+  5.8 wants MSVC 14.50 and the forums confirm 14.51 breaks engine headers, so the plan moved from VS 2022 to VS 2026
+  Community plus the 14.50 toolset. Claude set `core.longpaths`, ran `git lfs install`, installed butler and
+  rewrote `docs/pc-bringup.md` with the real paths and findings.
 
 ## AI in the loop (Glass Box)
 Claude did the research (engine version, MCP setup steps and limits, Claude Code on Windows, the APU's VRAM setting,
@@ -26,8 +32,10 @@ new to Unreal, full-time for the four days, no tool budget limit, Windows build.
 yet; that is the 3 Nov bring-up.
 
 ## Blockers
-- The PC is offline until early next week. If it slips past 4 Nov, the fallback is UE on the Mac with a macOS build.
+- None. The PC is online. The Mac fallback is no longer needed.
 
 ## Tomorrow
-Accounts (Epic 18+, itch, Fab, GitHub LFS data pack, AI tools), read the Official Rules PDF, watch the MCP setup video
-and Epic's first-hour and first-game courses.
+On the PC: install VS 2026 Community with MSVC 14.50 and UE 5.8.4 (admin and launcher steps in `docs/pc-bringup.md`
+section 1), `butler login`, then create the Third Person C++ project (section 3). Accounts (Epic 18+, itch, Fab,
+GitHub LFS data pack, AI tools), read the Official Rules PDF, watch the MCP setup video and Epic's first-hour and
+first-game courses.
