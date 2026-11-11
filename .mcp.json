@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "unreal-mcp": {
+      "type": "http",
+      "url": "http://127.0.0.1:8000/mcp"
+    },
+    "meshy": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "tools/mcp/node_modules/@meshy-ai/meshy-mcp-server/dist/index.js"
+      ],
+      "env": {
+        "MESHY_API_KEY": "${MESHY_API_KEY:-}",
+        "TRANSPORT": "stdio"
+      }
+    },
+    "fal": {
+      "type": "http",
+      "url": "https://mcp.fal.ai/mcp-relay"
+    },
+    "hyper3d-rodin": {
+      "type": "http",
+      "url": "https://api.hyper3d.com/api/mcp"
+    }
+  }
+}

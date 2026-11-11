@@ -13,6 +13,7 @@ Plugins/**/Intermediate/
 .idea/
 .vscode/
 *.sln
+*.slnx
 *.suo
 *.opensdf
 *.sdf
@@ -37,6 +38,9 @@ desktop.ini
 
 # Claude Code local-only settings and secrets
 .claude/settings.local.json
+.cache/
+node_modules/
+meshy_output/
 .env
 *.secret
 butler_creds

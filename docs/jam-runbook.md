@@ -18,17 +18,19 @@ Done when: (1) the project compiles with 0 errors, (2) PIE runs 30 s with no Err
 (3) <specific check>, (4) docs/ai-usage-log.md has a line for this work, (5) the work is committed.
 Stop after 25 turns, or after 3 failed attempts at the same error; then write the blocker to devlog/<today>.md and stop.
 ```
-Overnight goal (optional, Thu and Fri only): `docs/tonight.md` with 3–5 bounded items, run on Fable 5.1 `xhigh`:
+Overnight goal (optional, Thu and Fri only): `docs/tonight.md` with 3–5 bounded items, run on Fable 5.2 `medium` or `high`:
 "work through docs/tonight.md top to bottom; same done-criteria per item; stop after 40 turns or by 06:30 GMT".
 
-Models: Opus 5.5 `high` by default. Fable 5.1 `xhigh` for concept lock, the C++ architecture pass, packaging or MCP
-failures, and overnight goals. Sonnet 5.5 / Haiku 5.5 subagents for import scripts and log triage. One hard turn: `ultrathink`.
+Models: Opus 5.5 `high` by default. Fable 5.2 for concept lock, the C++ architecture pass, packaging or MCP
+failures, and overnight goals: start at `medium`, then `high` if needed; reserve `xhigh` for persistent blockers.
+Select it explicitly with `/model claude-fable-5-2`. Sonnet 5.5 / Haiku 5.5 subagents for import scripts and log triage.
+One hard turn: `ultrathink`. Check `/usage`; do not enable paid overage to bypass the subscription limit.
 
 ## Thu 12 Nov: core
 | Time | Milestone |
 |---|---|
 | 07:00 | Start. Re-read Wednesday's two finalists; pick one. |
-| 07:00–09:00 | Fill `docs/design.md` (one page). Fable `xhigh` as sounding board: "name the three biggest risks in this concept and the smallest version that still hits the theme". |
+| 07:00–09:00 | Fill `docs/design.md` (one page). Fable 5.2 `medium` as sounding board: "name the three biggest risks in this concept and the smallest version that still hits the theme". |
 | **09:00** | **Concept lock.** Commit `design.md`. No mechanic changes after this. |
 | 09:00–13:00 | Greybox the core mechanic: C++ systems (goal 1), MCP level blockout from the design paragraph (goal 2). Template character as-is. |
 | 13:00–14:00 | Lunch, then play the greybox. Fun for 30 s? If not, change numbers, not features. |

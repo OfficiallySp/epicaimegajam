@@ -1,7 +1,13 @@
-# PC bring-up checklist (Framework Desktop): started Fri 30 Oct, finish by Tue 3 Nov (4–5 h)
+# PC bring-up checklist (Framework Desktop): updated 11 Nov 2026
+
+**11 Nov update:** UE 5.8.4 is installed at `C:\Users\Shane\Epic Games\UE_5.8`. The minimal C++ project
+compiled in 78 seconds using MSVC 14.50, and Unreal MCP connects in Claude with 52 discoverable toolsets.
+A ten-second PIE check passed with zero Error/Fatal lines and zero warnings. VS Community 2026 and 7-Zip
+are installed; Meshy, fal and Hyper3D are connected. Optional project templates are not installed.
+See `docs/agent-setup.md` for details. Packaging/upload and the optional learning drills below remain unchecked.
 
 Work top to bottom, tick the boxes in this file, commit at the end. The repo is at `C:\Users\Shane\epicaimegajam`
-(T3 Code's project folder: short path, outside OneDrive); the engine goes to `C:\Program Files\Epic Games\UE_5.8`.
+(T3 Code's project folder: short path, outside OneDrive); the engine is at `C:\Users\Shane\Epic Games\UE_5.8`.
 The PC arrived early. On 30 Oct a Claude thread on the PC ran the checks below and filled in what it found.
 
 ## 0. System
@@ -30,7 +36,7 @@ compile engine code in 5.8 (`nvtess.h` includes `<hash_map>`); Epic's answer is 
 UnrealBuildTool picks 14.50 by itself once it is installed (`Engine\Config\Windows\Windows_SDK.json`). So: install
 VS 2026 Community with the 14.50 toolset component and keep Build Tools 2026 (harmless).
 
-- [ ] Visual Studio 2026 Community, admin PowerShell (about 10 GB). Either through winget:
+- [x] Visual Studio 2026 Community with MSVC 14.50 (verified 11 Nov). Original install instructions, admin PowerShell:
 ```powershell
 winget install -e --id Microsoft.VisualStudio.Community --override "--passive --norestart --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Workload.NativeGame --add Microsoft.VisualStudio.Workload.ManagedDesktop --add Microsoft.VisualStudio.Component.VC.14.50.18.0.x86.x64 --includeRecommended"
 ```
@@ -40,14 +46,13 @@ winget install -e --id Microsoft.VisualStudio.Community --override "--passive --
 ```
       Then check that `Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\18\Community\VC\Tools\MSVC'`
       lists `14.50.*`. When UE writes a `.vsconfig` next to the `.sln` (step 3), accept whatever components it asks for.
-- [ ] 7-Zip (faster zips that skip `*.pdb`; `zip-check.ps1` falls back to `Compress-Archive` without it), admin:
+- [x] 7-Zip (verified 11 Nov at `C:\Program Files\7-Zip`; faster zips that skip `*.pdb`), original install command:
       `winget install -e --id 7zip.7zip`
 - [x] butler 15.32.0 extracted to `C:\Users\Shane\.local\bin` (already on the user PATH, next to `claude.exe`).
 - [ ] `butler login` (opens a browser; the token lands in `%APPDATA%\itch`).
 - [ ] DaVinci Resolve (free) from blackmagicdesign.com (account needed), or CapCut.
-- [ ] Epic Games Launcher: sign in, Unreal Engine > Library > **+ > 5.8.4**, install to
-      `C:\Program Files\Epic Games\UE_5.8` (the default). Options: keep Starter Content and Templates; untick target
-      platforms you will not use (Android, iOS, Linux) to save disk. About 60 GB.
+- [x] UE **5.8.4** found in the per-user installation at `C:\Users\Shane\Epic Games\UE_5.8` and launched.
+      Optional templates/feature packs are absent. Add them through the launcher's engine options if needed later.
 - [x] Git: `user.name` Shane, `core.longpaths true`, `git lfs install` run in the repo (hooks present), `gh auth login`
       done. `user.email` is the me.com address; the jam needs the Epic and itch accounts to match, not commit authors.
 - [x] Claude Code signed in with the claude.ai account (`claude auth status`).
@@ -58,38 +63,39 @@ winget install -e --id Microsoft.VisualStudio.Community --override "--passive --
       name on purpose: Unreal only cares about `MegaJam26.uproject` inside it.
 
 ## 3. Create the Unreal project inside the repo
-The Project Browser always creates `<Location>\<Name>\`, so create it next door and move it in.
-- [ ] Launcher > Launch 5.8.4 > Games > **Third Person** > **C++** (not Blueprint); Target platform Desktop;
-      Quality Maximum; **Starter Content: off** (keeps the zip small; import what is needed later); Raytracing off.
-      Location `C:\Users\Shane\tmp`, name `MegaJam26`. Create. Let it compile and open once, then close the editor.
-- [ ] Move it into the repo and build:
+- [x] Created `MegaJam26.uproject`, a minimal primary C++ module and game/editor build targets directly in this repo.
+      This replaces the originally planned Third Person shell because the installation has no optional templates.
+      There is no custom game logic, character, input setup, or saved map yet.
+- [x] Full editor build and Visual Studio project generation passed:
 ```powershell
-robocopy C:\Users\Shane\tmp\MegaJam26 C:\Users\Shane\epicaimegajam /E /MOVE /XD Binaries Intermediate Saved DerivedDataCache .vs /XF *.sln
-Remove-Item C:\Users\Shane\tmp -Recurse -Force
 cd C:\Users\Shane\epicaimegajam
-$UE = 'C:\Program Files\Epic Games\UE_5.8'
+$UE = 'C:\Users\Shane\Epic Games\UE_5.8'
 & "$UE\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" -projectfiles -project="$PWD\MegaJam26.uproject" -game -rocket -progress
+# Close the editor before a full rebuild.
 & "$UE\Engine\Build\BatchFiles\Build.bat" MegaJam26Editor Win64 Development -Project="$PWD\MegaJam26.uproject" -WaitMutex
-git status   # expect MegaJam26.uproject, Config/, Content/, Source/, .vsconfig and NO Binaries/Intermediate/Saved
-git add -A; git commit -m "Create MegaJam26 (Third Person template, C++)"; git push
+.\tools\open-editor.ps1
 ```
-- [ ] Open the project (double-click the `.uproject`). PIE works with the third-person character. Note the editor
-      startup time (shader compile on first open) ___ min.
+- [x] Editor opens the engine's basic template scene as an unsaved level. PIE starts and stops through MCP.
+- [ ] If the game needs Epic's Third Person character, install the optional template/feature pack and import it
+      deliberately after kickoff. Do not overwrite the existing project or its MCP configuration.
 
 ## 4. Plugins and Unreal MCP
-- [ ] Edit > Plugins: enable **Unreal MCP**, **All Toolsets**, **Terminal**, **Python Editor Script Plugin**,
-      **Editor Scripting Utilities**. Restart the editor.
-- [ ] Editor Preferences > General > **Model Context Protocol** > *Auto Start Server* on (default `http://127.0.0.1:8000/mcp`).
-- [ ] Console (`~`): `ModelContextProtocol.GenerateClientConfig ClaudeCode`. `.mcp.json` appears at the repo root.
-      `git add .mcp.json; git commit -m "Add Unreal MCP client config"`.
-- [ ] From the repo root in a terminal: `claude`, then `/mcp` shows the Unreal server connected. Select an actor in the
-      level and ask "Which actors are selected?" Expect the right answer.
+- [x] Enabled **Unreal MCP**, **All Toolsets**, **Terminal**, **Python Editor Script Plugin**, and
+      **Editor Scripting Utilities** in `.uproject`, limited to editor targets.
+- [x] Auto-start configured in `Config/DefaultEditorPerProjectUserSettings.ini`; log confirms `127.0.0.1:8000`.
+- [x] `.mcp.json` and this PC's Claude local registration already contain `unreal-mcp` and the three asset services.
+      `ModelContextProtocol.GenerateClientConfig ClaudeCode` can refresh the project entry if required.
+- [x] `claude mcp get unreal-mcp` reports **Connected**. Direct MCP actor-selection and Output Log reads passed
+      without a Claude model call. Use `/mcp` when resuming Claude after the allowance resets.
 - [ ] Terminal plugin: open the in-editor terminal and run `claude` there too; decide which you prefer.
 
 ## 5. Smoke tests (write the results in)
+- [x] `node tools/mcp/unreal-smoke.mjs`: selection query; confirm PIE off; run ten seconds; confirm PIE on;
+      stop; confirm PIE off; read `LogPlayLevel`. Zero Error/Fatal lines and zero warnings during the test.
+      Report: ignored `.cache/unreal-smoke.json`. Do not run another MCP client during this check.
 - [ ] MCP: "Spawn a 5×5 grid of cubes at 200 cm spacing centred on the origin, then create a red material instance and
       apply it to all of them." Expect cubes in the viewport. Time ___ min, tool calls ___.
-- [ ] MCP: "List every toolset and tool you can reach." Fill the **tool inventory** table below.
+- [x] MCP `list_toolsets`: **52 toolsets** discovered. Table below distinguishes discovery from exercised functions.
 - [ ] C++: "Add a C++ actor `AJamTestActor` with `UPROPERTY(EditAnywhere) float SpinSpeed` that rotates every tick.
       Compile with Live Coding, place one in the level, run PIE, show the Output Log." Live Coding time ___ s
       (target under 60). Then close the editor, run the full `Build.bat` from step 3, note the time ___ min.
@@ -99,33 +105,33 @@ git add -A; git commit -m "Create MegaJam26 (Third Person template, C++)"; git p
 ### Tool inventory
 | Toolset | Available? | Notes: what it can and cannot do |
 |---|---|---|
-| Actors (spawn, move, select, delete, properties) | | |
-| Assets (find, import, save, rename, delete) | | |
-| Materials and instances | | |
-| Blueprint graph authoring | | |
-| Blueprint subclass creation and defaults | | |
-| UMG widgets | | |
-| Niagara | | |
-| Landscape / PCG | | |
-| Lighting and post-process | | |
-| PIE control and Output Log read | | |
-| Python execution | | |
-| Project settings / config | | |
-| Terminal (Claude Code inside the editor) | | |
+| Actors (spawn, move, select, delete, properties) | Discovered | ActorTools, SceneTools, ObjectTools; selected-actor read tested |
+| Assets (find, import, save, rename, delete) | Discovered | AssetTools; imports not yet exercised |
+| Materials and instances | Discovered | MaterialTools, MaterialInstanceTools |
+| Blueprint graph authoring | Discovered | BlueprintTools; workflows not yet exercised |
+| Blueprint subclass creation and defaults | Discovered | BlueprintTools and ObjectTools |
+| UMG widgets | Discovered | UMGToolSet |
+| Niagara | Discovered | Info, Component, Blueprint, System and Assets toolsets |
+| Landscape / PCG | Partial discovery | PCGToolset and PCGSpatialToolset; dedicated landscape tools not verified |
+| Lighting and post-process | General tools | Actor/Object/Scene property tooling; workflow not tested |
+| PIE control and Output Log read | Tested | StartPIE, IsPIERunning, StopPIE, GetLogEntries |
+| Python execution | Limited MCP scripting | ProgrammaticToolset is sandboxed tool orchestration, not arbitrary Python. Python Editor Script Plugin is enabled for normal editor scripts |
+| Project settings / config | Discovered | ConfigSettingsToolset |
+| Terminal (Claude Code inside the editor) | Enabled | Plugin loaded; in-editor terminal workflow not yet tried |
 
 Limits to remember: calls run serially on the game thread; HTTP/SSE only; editor only (nothing at game runtime); it
-cannot author animations; tool search exposes three meta-tools by default; toolset changes need
+includes animation/Sequencer toolsets whose workflows still need validation; tool search exposes three meta-tools by default; toolset changes need
 `ModelContextProtocol.RefreshTools` and new C++ tools need an editor restart. Python functions can be registered as
 toolsets with `unreal.ToolsetRegistry.register_toolset_class`: if a needed tool is missing, write it as a Python
 toolset in `Content/Python/init_unreal.py` rather than fighting the gap.
 
 ## 6. Packaging, zip, upload
-- [ ] Project Settings > Packaging: *List of maps to include* = the Third Person map for now; Use Pak File on;
+- [ ] After creating the game's first saved map, Project Settings > Packaging: *List of maps to include* = that map; Use Pak File on;
       Use IO Store on; Create compressed cooked packages on; Include Debug Files off. Maps & Modes: Game Default Map set.
 - [ ] `.\tools\package.ps1` (first run compiles shaders, 20–40 min; later runs are shorter). Time ___ min.
 - [ ] `tools\jam.env`: `JAM_TEAM_NAME=TestTeam` for now, `JAM_GAME_NAME=MegaJam26`. `.\tools\zip-check.ps1` creates
       `dist\TestTeam_MegaJam26.zip` under 1 GB. Size ___ MB.
-- [ ] Copy the zip to `C:\Temp\fresh\`, extract, run the exe: the game starts on the Third Person map. (A prerequisites
+- [ ] Copy the zip to `C:\Temp\fresh\`, extract, run the exe: the game starts on the intended map. (A prerequisites
       installer prompt on first run is expected; that is `-prereqs`.)
 - [ ] itch.io: create a project (visibility Draft; kind Downloadable; platform Windows), for example
       `https://<user>.itch.io/megajam26`. Put `ITCH_TARGET=<user>/megajam26` in `tools\jam.env`. `butler login`.

@@ -8,6 +8,10 @@
 | `package.sh` | Mac | Fallback macOS package, only if the PC is unavailable. |
 | `common.ps1` / `common.sh` | both | Shared helpers; read `jam.env`. |
 | `jam.env` | both | Team and game names, itch target and channel, engine roots. Environment variables with the same names override it. |
+| `mcp/package.json` + lockfile | PC / Mac | Pinned official Meshy MCP server; restore with `npm ci --prefix tools/mcp --ignore-scripts`. |
+| `mcp/check.mjs` | PC / Mac | Read-only MCP handshakes; `node tools/mcp/check.mjs meshy --balance` also validates Meshy account access without generation. See `docs/agent-setup.md`. |
+| `open-editor.ps1` | PC | Opens this repo's project using `UE_ROOT_WIN` from `jam.env`; MCP auto-starts through project settings. |
+| `mcp/unreal-smoke.mjs` | PC | Checks selection and PIE state, runs ten seconds of PIE, stops it, and reads the Output Log. Refuses to interrupt an existing PIE session. Run with no other Unreal MCP client. Report: ignored `.cache/unreal-smoke.json`. |
 
 ## One-time setup
 - Fill in `tools/jam.env` (team name, game name, `ITCH_TARGET=user/game-slug`).

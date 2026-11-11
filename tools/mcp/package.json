@@ -1,0 +1,12 @@
+{
+  "name": "megajam26-mcp-tools",
+  "private": true,
+  "description": "Pinned official MCP tooling for the MegaJam Claude Code project",
+  "scripts": {
+    "check": "node check.mjs"
+  },
+  "dependencies": {
+    "@meshy-ai/meshy-mcp-server": "0.6.11",
+    "@modelcontextprotocol/sdk": "1.32.2"
+  }
+}

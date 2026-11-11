@@ -1,7 +1,9 @@
 # MegaJam26 — 2026 Epic AI MegaJam entry (Unreal Engine 5.8.4, C++ + Blueprints, solo)
 
 Solo entry by Shane, who is new to Unreal. This repo root **is** the Unreal project root: `MegaJam26.uproject`,
-the editor-generated `.mcp.json` and this file all live here, and `claude` is launched from here so they load.
+the configured `.mcp.json` and this file all live here, and `claude` is launched from here so they load.
+Current setup: minimal C++ module, engine template scene and editor-only MCP plugins. The optional Third Person
+templates are not installed; no custom game content exists. Start the editor with `tools/open-editor.ps1`.
 
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.
@@ -21,7 +23,7 @@ the editor-generated `.mcp.json` and this file all live here, and `claude` is la
 
 ## Machines
 - **PC, Framework Desktop (Ryzen AI Max+ 395, Radeon 8060S, 64 GB, Windows 11):** engine, editor, Unreal MCP, packaging.
-  Engine: `C:\Program Files\Epic Games\UE_5.8`. Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
+  Engine: `C:\Users\Shane\Epic Games\UE_5.8`. Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
   Compiler: Visual Studio 2026 with the **MSVC 14.50** toolset (5.8's recommended version; 14.51 fails on engine headers).
 - **Mac mini (M4, 16 GB):** docs, dev log, scripts, video editing, itch uploads, second Claude window. No engine installed.
 
@@ -65,7 +67,7 @@ the editor-generated `.mcp.json` and this file all live here, and `claude` is la
 9. **Do not touch:** `Saved/`, `Intermediate/`, `Binaries/`, `DerivedDataCache/` (gitignored); renderer and platform
    sections of `Config/DefaultEngine.ini` unless the task is about them; originals under `Content/External/`.
 
-## Commands (PowerShell on the PC, from the repo root; `$UE = 'C:\Program Files\Epic Games\UE_5.8'`)
+## Commands (PowerShell on the PC, from the repo root; `$UE = 'C:\Users\Shane\Epic Games\UE_5.8'`)
 ```powershell
 # Full editor build (editor closed)
 & "$UE\Engine\Build\BatchFiles\Build.bat" MegaJam26Editor Win64 Development -Project="$PWD\MegaJam26.uproject" -WaitMutex
@@ -83,15 +85,25 @@ the editor-generated `.mcp.json` and this file all live here, and `claude` is la
 Editor console (`~`): `ModelContextProtocol.GenerateClientConfig ClaudeCode` writes `.mcp.json`;
 `ModelContextProtocol.RefreshTools` after toolset changes (restart the editor for new C++ tools); `LiveCoding.Compile`.
 In Claude Code, `/mcp` shows whether the Unreal server is connected.
+The default tool-search mode exposes `list_toolsets`, `describe_toolset`, and `call_tool` for 52 toolsets.
+`node tools/mcp/unreal-smoke.mjs` verifies a ten-second PIE session and Output Log access; run it with no other MCP client.
+Claude's optional `server/discover` health probe is unsupported by UE 5.8.4 and may log an error before normal initialization;
+distinguish that client-probe line from gameplay errors. See `docs/agent-setup.md` for verified setup details.
 
 ## Claude Code session defaults (Shane's usage plan)
 - Default: Opus 5.5 at `high` (`/model opus`, `/effort high`); `medium` for scripts, dev-log text, batch imports.
-- Escalate to Fable 5.1 at `xhigh` (`/model fable`) for concept lock, C++ architecture, packaging or MCP failures and
-  bounded overnight goals; `max` only when stuck for more than an hour. One hard turn: put `ultrathink` in the prompt.
+- Escalate to Fable 5.2 (`/model claude-fable-5-2`) for concept lock, C++ architecture, packaging or MCP failures and
+  bounded overnight goals. Start at `medium`, raise to `high` for hard investigations, and reserve `xhigh` / `max`
+  for persistent blockers. One hard turn: put `ultrathink` in the prompt.
 - Subagents on Sonnet 5.5 or Haiku 5.5 for verbose chores: import scripts, log triage.
 - Work in `/goal` blocks of 60–120 min with a verifiable end state and a turn cap (template below). `/loop` only for
   polling and reminders, never as the build loop.
 - Max subscription with usage credits off and no `/fast`. Check `/usage` before heavy days.
+- On 11 Nov the Claude subscription is exhausted until the 12 Nov reset: use Codex for prep; do not make Claude
+  model calls or switch to API billing to work around the limit. MCP installation/handshake checks need no model calls.
+- Project MCP setup and remaining sign-ins: `docs/agent-setup.md`. Use `unreal-mcp` for the editor, `meshy` for 3D,
+  `hyper3d-rodin` as the other selected 3D service, and `fal` for images/audio. PBRgen uses web exports.
+  Check account/credit status before generation; setup checks must not create assets.
 
 ## Goal condition template
 ```

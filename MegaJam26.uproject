@@ -1,0 +1,21 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "",
+  "Description": "MegaJam26 development shell. No jam-specific gameplay before kickoff.",
+  "Modules": [
+    {
+      "Name": "MegaJam26",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    { "Name": "AndroidFileServer", "Enabled": false },
+    { "Name": "ModelContextProtocol", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "AllToolsets", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "Terminal", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "PythonScriptPlugin", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "EditorScriptingUtilities", "Enabled": true, "TargetAllowList": ["Editor"] }
+  ]
+}
