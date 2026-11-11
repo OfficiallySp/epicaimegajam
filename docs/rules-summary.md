@@ -4,6 +4,12 @@ Source: the jam page https://itch.io/jam/2026-epic-ai-megajam (read 30 Oct 2026)
 https://epicgames.box.com/s/a7xcgl07fqoieeb99sjtd3juhj4agc4z is authoritative; it is a JavaScript viewer, so Shane
 reads it once and notes anything that differs in the *Open items* section below.
 
+## Theme: DIRECTOR’S CUT
+
+Announcement supplied by Shane on 11 November 2026:
+
+> Your vision, your edits, your final cut. Every developer has that one feature that didn’t quite make it: the mechanic you scoped out at 2 AM, or the idea you shelved and never found a place for. Now’s your chance to finally build it. Using AI agents? You’re directing those too. Set the vision, delegate tasks, and decide what makes the cut.
+
 ## Eligibility
 - 18+, active Epic Games account (18+ verified, same email as the itch account).
 - Solo or team up to 5. "No limit on agents."

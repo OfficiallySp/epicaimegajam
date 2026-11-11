@@ -1,6 +1,7 @@
 # Jam runbook: Thu 12 to Sun 15 Nov 2026 (GMT)
 
 Theme reveal Wed 11 Nov 19:00. Jam opens Thu 05:00. Submit Sunday by 19:00. Hard deadline Monday 01:59.
+Announced theme: **DIRECTOR’S CUT**. Full announcement: `docs/rules-summary.md`. Concept selection remains open.
 Times below are targets; the milestones in **bold** are the ones that matter. Standing rules are at the end.
 
 ## The work block (repeat all day)

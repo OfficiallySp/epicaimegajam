@@ -5,6 +5,9 @@ the configured `.mcp.json` and this file all live here, and `claude` is launched
 Current setup: minimal C++ module, engine template scene and editor-only MCP plugins. The optional Third Person
 templates are not installed; no custom game content exists. Start the editor with `tools/open-editor.ps1`.
 
+Announced theme: **DIRECTOR’S CUT**. The announcement supplied by Shane is recorded in
+`docs/rules-summary.md`. The game concept is still to be chosen; development starts Thu 12 Nov 05:00 GMT.
+
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.
 - **Thu 12 Nov 05:00: jam opens. Nothing game-specific (code, assets, design text) exists before this moment.**

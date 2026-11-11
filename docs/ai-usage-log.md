@@ -28,4 +28,7 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   and remove its generated authentication settings from shared config · setup shell, scripts and docs kept;
   no custom game assets or gameplay, no Claude model calls; packaging not yet tested · time saving not measured
 
+- 2026-11-11 · Codex / GPT-6 Astra in T3 Code · record Shane's supplied DIRECTOR’S CUT theme announcement
+  in the rules notes, agent instructions and runbook · theme metadata kept; no game concept, gameplay or assets added
+
 ## Jam (from Thu 12 Nov 05:00 GMT)
