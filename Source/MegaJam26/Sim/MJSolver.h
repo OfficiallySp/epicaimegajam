@@ -21,4 +21,5 @@ namespace MJ
 {
 	MEGAJAM26_API void Solve(const FMJLevelDef& L, int32 MaxEdits, FMJSolveReport& Out, int32 MaxStates = 3000000);
 	MEGAJAM26_API FString FormatReport(const FMJLevelDef& L, const FMJSolveReport& R);
+	MEGAJAM26_API FString Trace(const FMJLevelDef& L, const FMJSimResult& R);
 }

@@ -1,16 +1,22 @@
-// Fix It In Post - level definitions.
+// Fix It In Post - level definitions: the builder, the text parser and the embedded campaign.
 #include "Sim/MJLevels.h"
+
+#include "Misc/FileHelper.h"
 
 namespace
 {
+	static const char* GMJLevelText[] = {
+#include "Sim/MJLevelData.inl"
+	};
+
 	EMJDir DirOf(TCHAR C)
 	{
 		switch (C)
 		{
-		case 'n': return EMJDir::N;
-		case 'e': return EMJDir::E;
-		case 's': return EMJDir::S;
-		case 'w': return EMJDir::W;
+		case 'n': case 'N': return EMJDir::N;
+		case 'e': case 'E': return EMJDir::E;
+		case 's': case 'S': return EMJDir::S;
+		case 'w': case 'W': return EMJDir::W;
 		default: return EMJDir::None;
 		}
 	}
@@ -45,6 +51,12 @@ namespace
 		default: return false;
 		}
 	}
+
+	TArray<FMJLevelDef>& Campaign()
+	{
+		static TArray<FMJLevelDef> All;
+		return All;
+	}
 }
 
 FMJLevelBuilder::FMJLevelBuilder(const TCHAR* Id, const TCHAR* Title, int32 Reel)
@@ -63,17 +75,24 @@ FMJLevelBuilder& FMJLevelBuilder::Text(const TCHAR* Slug, const TCHAR* Script, c
 
 FMJLevelBuilder& FMJLevelBuilder::Map(std::initializer_list<const TCHAR*> Rows)
 {
-	L.H = (int32)Rows.size();
+	TArray<FString> R;
+	for (const TCHAR* Row : Rows) R.Add(Row);
+	return MapRows(R);
+}
+
+FMJLevelBuilder& FMJLevelBuilder::MapRows(const TArray<FString>& Rows)
+{
+	L.H = Rows.Num();
 	L.W = 0;
-	for (const TCHAR* R : Rows) L.W = FMath::Max(L.W, FCString::Strlen(R));
+	for (const FString& R : Rows) L.W = FMath::Max(L.W, R.Len());
+	L.Cells.Reset();
 	L.Cells.SetNum(L.W * L.H);
-	int32 Y = 0;
-	for (const TCHAR* R : Rows)
+	for (int32 Y = 0; Y < L.H; ++Y)
 	{
-		const int32 Len = FCString::Strlen(R);
+		const FString& R = Rows[Y];
 		for (int32 X = 0; X < L.W; ++X)
 		{
-			const TCHAR Ch = X < Len ? R[X] : TEXT(' ');
+			const TCHAR Ch = X < R.Len() ? R[X] : TEXT(' ');
 			FMJCell& C = L.Cells[Y * L.W + X];
 			C.Tile = EMJTile::Floor;
 			auto Chan = [Ch](const TCHAR* Set) -> int8 { const TCHAR* F = FCString::Strchr(Set, Ch); return F ? (int8)(F - Set) : (int8)-1; };
@@ -88,8 +107,8 @@ FMJLevelBuilder& FMJLevelBuilder::Map(std::initializer_list<const TCHAR*> Rows)
 			else if (Chan(TEXT("defg")) >= 0) { C.Fix = EMJFix::Plate; C.Chan = Chan(TEXT("defg")); }
 			else if (Chan(TEXT("pqrt")) >= 0) { C.Fix = EMJFix::Lever; C.Chan = Chan(TEXT("pqrt")); }
 			else if (Chan(TEXT("LMNO")) >= 0) { C.Fix = EMJFix::Laser; C.Chan = Chan(TEXT("LMNO")); }
+			else if (Ch != '.') UE_LOG(LogTemp, Warning, TEXT("MJ: level %s has an unknown map character '%c'"), *L.Id, Ch);
 		}
-		++Y;
 	}
 	return *this;
 }
@@ -118,7 +137,7 @@ FMJLevelBuilder& FMJLevelBuilder::Actor(EMJRole Role, const TCHAR* Name, EMJDir 
 	A.Sight = Sight;
 	const int32 Index = L.Actors.Num();
 	A.Start = Index < 9 ? Starts[Index] : FIntPoint(-1, -1);
-	if (Look) A.Look = FName(Look);
+	if (Look && *Look) A.Look = FName(Look);
 	else
 	{
 		switch (Role)
@@ -131,9 +150,9 @@ FMJLevelBuilder& FMJLevelBuilder::Actor(EMJRole Role, const TCHAR* Name, EMJDir 
 		default: A.Look = TEXT("Prop"); break;
 		}
 	}
-	ParseTrack(Track, A.Track);
+	bValid &= ParseTrack(Track, A.Track);
 	for (int32 i = 0; i < A.Track.Num(); ++i) { A.Track[i].Uid = NextUid++; A.Track[i].Orig = i; }
-	if (Role != EMJRole::Prop && A.Start.X < 0) UE_LOG(LogTemp, Error, TEXT("MJ: level %s actor %s has no start tile"), *L.Id, Name);
+	if (Role != EMJRole::Prop && A.Start.X < 0) { bValid = false; UE_LOG(LogTemp, Error, TEXT("MJ: level %s actor %s has no start tile"), *L.Id, Name); }
 	L.Actors.Add(MoveTemp(A));
 	return *this;
 }
@@ -141,7 +160,7 @@ FMJLevelBuilder& FMJLevelBuilder::Actor(EMJRole Role, const TCHAR* Name, EMJDir 
 FMJLevelBuilder& FMJLevelBuilder::Bin(int32 ActorIndex, const TCHAR* Clips)
 {
 	TArray<FMJClip> Parsed;
-	ParseTrack(Clips, Parsed);
+	bValid &= ParseTrack(Clips, Parsed);
 	for (FMJClip& C : Parsed)
 	{
 		C.Uid = NextUid++;
@@ -166,60 +185,171 @@ FMJLevelBuilder& FMJLevelBuilder::Bonus(EMJBonus Type, int32 Param, const TCHAR*
 
 namespace MJ
 {
-	static void BuildLevels(TArray<FMJLevelDef>& Out)
+	int32 ParseLevels(const FString& Text, TArray<FMJLevelDef>& Out, FString& OutErrors)
 	{
-		const bool LOCKED = true;
+		TArray<FString> Lines;
+		Text.ParseIntoArrayLines(Lines, false);
+		TUniquePtr<FMJLevelBuilder> B;
+		TArray<FString> Rows;
+		bool bInMap = false;
+		int32 Added = 0;
 
-		// ------------------------------------------------------------------ REEL 1: THE HEIST (cut)
-		Out.Add(FMJLevelBuilder(TEXT("r1s1"), TEXT("Product Placement"), 1)
-			.Text(TEXT("INT. MUSEUM CORRIDOR - NIGHT"),
-				TEXT("ACE slips past the night guard and reaches his mark."),
-				TEXT("The studio added a soda advert. Click a clip, then press X to cut it."))
-			.Map({
-				TEXT("#########"),
-				TEXT("#1.....X#"),
-				TEXT("#####2###"),
-				TEXT("#########") })
-			.Actor(EMJRole::Star, TEXT("ACE"), EMJDir::E, TEXT("e e z2=SODA_AD e e e e"))
-			.Actor(EMJRole::Guard, TEXT("GUARD"), EMJDir::S, TEXT("z5=NAP ln z3"), LOCKED)
-			.Rules(1, 1, MJTool_Cut)
-			.L);
+		auto Err = [&OutErrors](int32 LineNo, const FString& Msg) { OutErrors += FString::Printf(TEXT("line %d: %s\n"), LineNo + 1, *Msg); };
+		auto Finish = [&]()
+		{
+			if (!B) return;
+			FMJLevelDef& L = B->L;
+			bool bOk = B->bValid;
+			if (L.W == 0) { OutErrors += FString::Printf(TEXT("level %s: no map\n"), *L.Id); bOk = false; }
+			bool bStar = false, bExit = false;
+			for (const FMJActorDef& A : L.Actors) bStar |= A.Role == EMJRole::Star;
+			for (const FMJCell& C : L.Cells) bExit |= C.Fix == EMJFix::Exit;
+			if (!bStar) { OutErrors += FString::Printf(TEXT("level %s: no star\n"), *L.Id); bOk = false; }
+			if (!bExit) { OutErrors += FString::Printf(TEXT("level %s: no mark (X)\n"), *L.Id); bOk = false; }
+			for (const FMJBinClip& C : L.Bin) { if (!L.Actors.IsValidIndex(C.Actor)) { OutErrors += FString::Printf(TEXT("level %s: bin clip for missing actor %d\n"), *L.Id, C.Actor); bOk = false; } }
+			if (!B->bValid) OutErrors += FString::Printf(TEXT("level %s: bad strip or actor (see log)\n"), *L.Id);
+			if (bOk) { Out.Add(L); ++Added; }
+			B.Reset();
+		};
 
-		Out.Add(FMJLevelBuilder(TEXT("r1s2"), TEXT("The Laser Hall"), 1)
-			.Text(TEXT("INT. LASER HALL - NIGHT"),
-				TEXT("ACE crosses the hall while the grid is down."),
-				TEXT("Cutting a clip pulls everything after it one beat earlier."))
-			.Map({
-				TEXT("#########"),
-				TEXT("#1..L..X#"),
-				TEXT("#########") })
-			.Actor(EMJRole::Star, TEXT("ACE"), EMJDir::E, TEXT("z2=SELFIE e e e e e e"))
-			.Actor(EMJRole::Prop, TEXT("LASER GRID"), EMJDir::S, TEXT("z2=ON c0+=OFF z1=OFF c0-=ON z3=ON"), LOCKED)
-			.Rules(1, 1, MJTool_Cut)
-			.L);
+		for (int32 i = 0; i < Lines.Num(); ++i)
+		{
+			if (bInMap)
+			{
+				if (Lines[i].TrimStartAndEnd().Equals(TEXT("endmap"), ESearchCase::IgnoreCase))
+				{
+					bInMap = false;
+					if (B) B->MapRows(Rows);
+					Rows.Reset();
+				}
+				else Rows.Add(Lines[i].TrimEnd());
+				continue;
+			}
+			const FString Line = Lines[i].TrimStartAndEnd();
+			if (Line.IsEmpty() || Line.StartsWith(TEXT("//"))) continue;
+			FString Key, Rest;
+			if (!Line.Split(TEXT(" "), &Key, &Rest)) { Key = Line; Rest.Reset(); }
+			Rest.TrimStartAndEndInline();
+			Key.ToLowerInline();
 
-		// ------------------------------------------------------------------ REEL 2: THE GETAWAY (splice)
-		Out.Add(FMJLevelBuilder(TEXT("r2s1"), TEXT("Hold The Door"), 2)
-			.Text(TEXT("INT. SERVICE TUNNEL - NIGHT"),
-				TEXT("PIP holds the door. ACE walks through it."),
-				TEXT("Drag a clip along its strip to splice it somewhere else."))
-			.Map({
-				TEXT("#########"),
-				TEXT("#1..D..X#"),
-				TEXT("#########"),
-				TEXT("#2.d....#"),
-				TEXT("#########") })
-			.Actor(EMJRole::Star, TEXT("ACE"), EMJDir::E, TEXT("z=YAWN e e e e e e"))
-			.Actor(EMJRole::Ally, TEXT("PIP"), EMJDir::E, TEXT("e e e e z2"))
-			.Rules(2, 1, MJTool_Cut | MJTool_Move)
-			.L);
+			if (Key == TEXT("level")) { Finish(); B = MakeUnique<FMJLevelBuilder>(*Rest, TEXT(""), 1); continue; }
+			if (Key == TEXT("end")) { Finish(); continue; }
+			if (!B) { Err(i, TEXT("expected 'level <id>'")); continue; }
+			FMJLevelDef& L = B->L;
+
+			if (Key == TEXT("title")) L.Title = Rest;
+			else if (Key == TEXT("slug")) L.Slug = Rest;
+			else if (Key == TEXT("script")) L.Script = Rest;
+			else if (Key == TEXT("note")) L.Note = Rest;
+			else if (Key == TEXT("reel")) L.Reel = FMath::Clamp(FCString::Atoi(*Rest), 1, 3);
+			else if (Key == TEXT("map")) bInMap = true;
+			else if (Key == TEXT("needitem")) L.bNeedItem = true;
+			else if (Key == TEXT("invert"))
+			{
+				TArray<FString> Parts;
+				Rest.ParseIntoArray(Parts, TEXT(","));
+				for (const FString& P : Parts) L.InvertMask |= 1u << FMath::Clamp(FCString::Atoi(*P), 0, 31);
+			}
+			else if (Key == TEXT("actor"))
+			{
+				FString Head, Track;
+				if (!Rest.Split(TEXT("|"), &Head, &Track)) { Head = Rest; }
+				TArray<FString> T;
+				Head.ParseIntoArrayWS(T);
+				if (T.Num() < 3) { Err(i, TEXT("actor needs: <role> <NAME> <facing> [options] | <strip>")); continue; }
+				EMJRole Role = EMJRole::Guard;
+				const FString R = T[0].ToLower();
+				if (R == TEXT("star")) Role = EMJRole::Star;
+				else if (R == TEXT("ally")) Role = EMJRole::Ally;
+				else if (R == TEXT("guard")) Role = EMJRole::Guard;
+				else if (R == TEXT("camera")) Role = EMJRole::Camera;
+				else if (R == TEXT("crusher")) Role = EMJRole::Crusher;
+				else if (R == TEXT("prop")) Role = EMJRole::Prop;
+				else Err(i, FString::Printf(TEXT("unknown role '%s'"), *T[0]));
+				const EMJDir Facing = DirOf(T[2][0]);
+				if (Facing == EMJDir::None) Err(i, FString::Printf(TEXT("bad facing '%s'"), *T[2]));
+				bool bLocked = false;
+				int32 Sight = 3;
+				FString Look;
+				for (int32 j = 3; j < T.Num(); ++j)
+				{
+					if (T[j].Equals(TEXT("locked"), ESearchCase::IgnoreCase)) bLocked = true;
+					else if (T[j].StartsWith(TEXT("sight="))) Sight = FCString::Atoi(*T[j].Mid(6));
+					else if (T[j].StartsWith(TEXT("look="))) Look = T[j].Mid(5);
+					else Err(i, FString::Printf(TEXT("unknown actor option '%s'"), *T[j]));
+				}
+				B->Actor(Role, *T[1].Replace(TEXT("_"), TEXT(" ")), Facing == EMJDir::None ? EMJDir::S : Facing, *Track, bLocked, Sight, *Look);
+			}
+			else if (Key == TEXT("bin"))
+			{
+				FString Head, Clips;
+				if (!Rest.Split(TEXT("|"), &Head, &Clips)) { Err(i, TEXT("bin needs: <actor index> | <clips>")); continue; }
+				B->Bin(FCString::Atoi(*Head.TrimStartAndEnd()), *Clips);
+			}
+			else if (Key == TEXT("rules"))
+			{
+				TArray<FString> T;
+				Rest.ParseIntoArrayWS(T);
+				for (const FString& Opt : T)
+				{
+					if (Opt.StartsWith(TEXT("edits="))) L.MaxEdits = FCString::Atoi(*Opt.Mid(6));
+					else if (Opt.StartsWith(TEXT("par="))) L.Par = FCString::Atoi(*Opt.Mid(4));
+					else if (Opt.StartsWith(TEXT("tools=")))
+					{
+						L.Tools = 0;
+						const FString V = Opt.Mid(6).ToLower();
+						if (V.Contains(TEXT("cut"))) L.Tools |= MJTool_Cut;
+						if (V.Contains(TEXT("move"))) L.Tools |= MJTool_Move;
+						if (V.Contains(TEXT("insert"))) L.Tools |= MJTool_Insert;
+					}
+					else Err(i, FString::Printf(TEXT("unknown rule '%s'"), *Opt));
+				}
+			}
+			else if (Key == TEXT("bonus"))
+			{
+				FString Head, Shown;
+				if (!Rest.Split(TEXT("|"), &Head, &Shown)) { Head = Rest; }
+				TArray<FString> T;
+				Head.ParseIntoArrayWS(T);
+				if (T.Num() == 0) { Err(i, TEXT("bonus needs a type")); continue; }
+				const FString Type = T[0].ToLower();
+				const int32 Param = T.Num() > 1 ? FCString::Atoi(*T[1]) : 0;
+				L.BonusText = Shown.TrimStartAndEnd();
+				L.BonusParam = Param;
+				if (Type == TEXT("maxbeats")) L.Bonus = EMJBonus::MaxBeats;
+				else if (Type == TEXT("maxedits")) L.Bonus = EMJBonus::MaxEdits;
+				else if (Type == TEXT("noko")) L.Bonus = EMJBonus::NoKO;
+				else if (Type == TEXT("collect")) L.Bonus = EMJBonus::Collect;
+				else if (Type == TEXT("keep")) { L.Bonus = EMJBonus::KeepLabel; L.BonusLabel = T.Num() > 1 ? T[1].Replace(TEXT("_"), TEXT(" ")) : FString(); }
+				else Err(i, FString::Printf(TEXT("unknown bonus '%s'"), *T[0]));
+			}
+			else Err(i, FString::Printf(TEXT("unknown keyword '%s'"), *Key));
+		}
+		Finish();
+		return Added;
 	}
 
 	const TArray<FMJLevelDef>& Levels()
 	{
-		static TArray<FMJLevelDef> All;
-		if (All.Num() == 0) BuildLevels(All);
+		TArray<FMJLevelDef>& All = Campaign();
+		if (All.Num() == 0)
+		{
+			FString Errors;
+			for (const char* Chunk : GMJLevelText) ParseLevels(FString(UTF8_TO_TCHAR(Chunk)), All, Errors);
+			if (!Errors.IsEmpty()) UE_LOG(LogTemp, Error, TEXT("MJ: embedded level data has problems:\n%s"), *Errors);
+		}
 		return All;
+	}
+
+	bool LoadLevelFile(const FString& Path, FString& OutErrors)
+	{
+		FString Text;
+		if (!FFileHelper::LoadFileToString(Text, *Path)) { OutErrors = FString::Printf(TEXT("cannot read %s"), *Path); return false; }
+		TArray<FMJLevelDef> Parsed;
+		ParseLevels(Text, Parsed, OutErrors);
+		if (Parsed.Num() == 0) return false;
+		Campaign() = MoveTemp(Parsed);
+		return true;
 	}
 
 	int32 FindLevel(const FString& IdOrIndex)

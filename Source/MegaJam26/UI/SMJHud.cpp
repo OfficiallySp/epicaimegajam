@@ -92,13 +92,20 @@ namespace
 		return B.Get();
 	}
 
-	const FSlateBrush* FrameBrush(float Radius, float Thick)
+	/**
+	 * Outline-only rounded box. MakeBox's tint only colours the fill, so the outline colour has to live in the brush:
+	 * one cached brush per (radius, thickness, colour), drawn with a transparent tint.
+	 */
+	const FSlateBrush* FrameBrush(float Radius, float Thick, const FLinearColor& Color)
 	{
-		static TMap<int32, TSharedPtr<FSlateRoundedBoxBrush>> Cache;
-		const int32 R = FMath::Clamp(FMath::RoundToInt(Radius), 0, 200);
-		const int32 T = FMath::Clamp(FMath::RoundToInt(Thick * 2.f), 1, 40);
-		TSharedPtr<FSlateRoundedBoxBrush>& B = Cache.FindOrAdd(R * 64 + T);
-		if (!B.IsValid()) B = MakeShared<FSlateRoundedBoxBrush>(FLinearColor::Transparent, (float)R, FLinearColor::White, T * 0.5f);
+		static TMap<uint64, TSharedPtr<FSlateRoundedBoxBrush>> Cache;
+		const uint64 R = (uint64)FMath::Clamp(FMath::RoundToInt(Radius), 0, 255);
+		const uint64 T = (uint64)FMath::Clamp(FMath::RoundToInt(Thick * 2.f), 1, 63);
+		FColor Q = Color.ToFColor(true);
+		Q.A = (uint8)(FMath::RoundToInt(Q.A / 17.f) * 17); // 16 alpha steps keep fades from minting a brush per frame
+		const uint64 Key = (R << 40) | (T << 32) | (uint64)Q.ToPackedARGB();
+		TSharedPtr<FSlateRoundedBoxBrush>& B = Cache.FindOrAdd(Key);
+		if (!B.IsValid()) B = MakeShared<FSlateRoundedBoxBrush>(FLinearColor::Transparent, (float)R, FLinearColor(Q), T * 0.5f);
 		return B.Get();
 	}
 }
@@ -124,8 +131,8 @@ struct FMJPaint
 
 	void Frame(FVector2f P, FVector2f Sz, const FLinearColor& C, float Radius, float Thick) const
 	{
-		if (Sz.X <= 0.f || Sz.Y <= 0.f) return;
-		FSlateDrawElement::MakeBox(Out, Layer, Geo(P, Sz), FrameBrush(Radius * S, Thick * S), ESlateDrawEffect::None, C);
+		if (Sz.X <= 0.f || Sz.Y <= 0.f || C.A <= 0.02f) return;
+		FSlateDrawElement::MakeBox(Out, Layer, Geo(P, Sz), FrameBrush(Radius * S, Thick * S, C), ESlateDrawEffect::None, FLinearColor::Transparent);
 	}
 
 	FSlateFontInfo Font(float Px, const TCHAR* Face = TEXT("Bold")) const
@@ -159,7 +166,8 @@ struct FMJPaint
 	{
 		const FPaintGeometry PG = G.ToPaintGeometry(Sz * S, FSlateLayoutTransform((Center - Sz * 0.5f) * S),
 			FSlateRenderTransform(FQuat2f(FMath::DegreesToRadians(Degrees))), FVector2f(0.5f, 0.5f));
-		FSlateDrawElement::MakeBox(Out, Layer, PG, FrameBrush(Radius * S, Thick * S), ESlateDrawEffect::None, C);
+		if (C.A <= 0.02f) return;
+		FSlateDrawElement::MakeBox(Out, Layer, PG, FrameBrush(Radius * S, Thick * S, C), ESlateDrawEffect::None, FLinearColor::Transparent);
 	}
 
 	TArray<FString> Wrap(const FString& T, const FSlateFontInfo& F, float MaxW) const

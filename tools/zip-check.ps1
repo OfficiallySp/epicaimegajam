@@ -30,7 +30,11 @@ $warnings = New-Object System.Collections.Generic.List[string]
 
 if (-not $CheckOnly) {
     $zipBase = Get-JamZipBaseName
-    if (-not $BuildDir) { $BuildDir = Join-Path $RepoRoot 'dist\Win64\Windows' }
+    if (-not $BuildDir) {
+        # UE 5.8 archives straight into dist\Win64; older versions add a Windows\ folder.
+        $BuildDir = Join-Path $RepoRoot 'dist\Win64\Windows'
+        if (-not (Test-Path $BuildDir)) { $BuildDir = Join-Path $RepoRoot 'dist\Win64' }
+    }
     if (-not $ZipPath) { $ZipPath = Join-Path $RepoRoot "dist\$zipBase.zip" }
     if (-not (Test-Path $BuildDir)) { throw "Build folder not found: $BuildDir. Run .\tools\package.ps1 first." }
 

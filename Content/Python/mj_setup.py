@@ -90,6 +90,29 @@ def create_stage_map():
     return f"L_Stage created: {ok}"
 
 
+def import_mesh(src, name, folder="/Game/MegaJam26/Characters", prefix="SM_"):
+    """Import a GLB/FBX and leave its static mesh at <folder>/<prefix><name> (materials and textures in <folder>/<name>/)."""
+    dest = f"{folder}/{name}"
+    task = unreal.AssetImportTask()
+    task.set_editor_property("filename", src)
+    task.set_editor_property("destination_path", dest)
+    task.set_editor_property("automated", True)
+    task.set_editor_property("replace_existing", True)
+    task.set_editor_property("save", True)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
+    target = f"{folder}/{prefix}{name}"
+    meshes = [p for p in _eal.list_assets(dest, recursive=True) if isinstance(_eal.load_asset(p), unreal.StaticMesh)]
+    if not meshes:
+        return f"{name}: no static mesh imported from {src}"
+    if _eal.does_asset_exist(target):
+        _eal.delete_asset(target)
+    _eal.rename_asset(meshes[0].split(".")[0], target)
+    _eal.save_directory(folder)
+    mesh = _eal.load_asset(target)
+    b = mesh.get_bounds()
+    return f"{target}: tris={mesh.get_num_triangles(0)} extent=({b.box_extent.x:.0f},{b.box_extent.y:.0f},{b.box_extent.z:.0f}) meshes={len(meshes)}"
+
+
 def run(force=False):
     out = [create_solid(force), create_glow(force), create_stage_map()]
     print("; ".join(out))

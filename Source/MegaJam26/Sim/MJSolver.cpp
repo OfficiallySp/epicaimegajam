@@ -2,6 +2,7 @@
 #include "Sim/MJSolver.h"
 #include "Sim/MJLevels.h"
 #include "HAL/IConsoleManager.h"
+#include "Misc/FileHelper.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMJSolve, Log, All);
 
@@ -154,6 +155,55 @@ static FAutoConsoleCommand GMJSolveCmd(
 		const int32 I = Args.Num() > 0 ? MJ::FindLevel(Args[0]) : INDEX_NONE;
 		if (I == INDEX_NONE) { UE_LOG(LogMJSolve, Warning, TEXT("mj.Solve: unknown level")); return; }
 		MJSolveOne(I, true);
+	}));
+
+namespace MJ
+{
+	FString Trace(const FMJLevelDef& L, const FMJSimResult& R)
+	{
+		static const TCHAR* DirCh[] = { TEXT("N"), TEXT("E"), TEXT("S"), TEXT("W"), TEXT("?") };
+		FString S;
+		for (int32 b = 0; b < R.States.Num(); ++b)
+		{
+			S += FString::Printf(TEXT("  %2d:"), b);
+			for (int32 a = 0; a < L.Actors.Num(); ++a)
+			{
+				if (L.Actors[a].Role == EMJRole::Prop) continue;
+				const FMJActorState& A = R.States[b].Actors[a];
+				S += FString::Printf(TEXT(" %s(%d,%d)%s%s"), *L.Actors[a].Name, A.Pos.X, A.Pos.Y, DirCh[(int32)A.Facing],
+					A.Status == EMJStatus::Active ? TEXT("") : (A.Status == EMJStatus::KO ? TEXT("[KO]") : TEXT("[DEAD]")));
+			}
+			S += FString::Printf(TEXT("  ch=%x%s\n"), R.States[b].Active, R.States[b].bItemTaken ? TEXT(" item") : TEXT(""));
+		}
+		return S;
+	}
+}
+
+static FAutoConsoleCommand GMJSolveFileCmd(
+	TEXT("mj.SolveFile"), TEXT("mj.SolveFile <path> [trace]: parse a level text file and brute-force every level in it (the campaign is not replaced)."),
+	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+	{
+		if (Args.Num() == 0) return;
+		FString Text, Errors;
+		if (!FFileHelper::LoadFileToString(Text, *Args[0])) { UE_LOG(LogMJSolve, Warning, TEXT("mj.SolveFile: cannot read %s"), *Args[0]); return; }
+		TArray<FMJLevelDef> Parsed;
+		MJ::ParseLevels(Text, Parsed, Errors);
+		if (!Errors.IsEmpty()) UE_LOG(LogMJSolve, Warning, TEXT("mj.SolveFile: problems:\n%s"), *Errors);
+		const bool bTrace = Args.Num() > 1 && Args[1].Equals(TEXT("trace"), ESearchCase::IgnoreCase);
+		for (const FMJLevelDef& L : Parsed)
+		{
+			FMJSolveReport R;
+			const double T0 = FPlatformTime::Seconds();
+			MJ::Solve(L, L.MaxEdits, R);
+			UE_LOG(LogMJSolve, Display, TEXT("%s (%.2fs)"), *MJ::FormatReport(L, R), FPlatformTime::Seconds() - T0);
+			for (const FString& S : R.Samples) UE_LOG(LogMJSolve, Display, TEXT("    %s"), *S);
+			if (bTrace)
+			{
+				FMJEditState E; MJ::InitEdit(L, E);
+				FMJSimResult Sim; MJ::Simulate(L, E.Tracks, Sim);
+				UE_LOG(LogMJSolve, Display, TEXT("    theatrical trace:\n%s"), *MJ::Trace(L, Sim));
+			}
+		}
 	}));
 
 static FAutoConsoleCommand GMJSolveAllCmd(

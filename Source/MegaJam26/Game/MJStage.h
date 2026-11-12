@@ -79,6 +79,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float TileSize = 100.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float WallHeight = 55.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float HopHeight = 38.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FigureHeight = 108.f;
+	/** Yaw that turns an imported figurine so its face points along +X (the engine's forward). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FigureYaw = 90.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float CamFov = 28.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float CamPitch = -52.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float CamLerpSpeed = 3.5f;

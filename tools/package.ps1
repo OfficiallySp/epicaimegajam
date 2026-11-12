@@ -76,8 +76,9 @@ if ($exitCode -ne 0) {
     throw ("BuildCookRun failed (exit {0}) after {1:hh\:mm\:ss}. Search for 'Error:' in {2}" -f $exitCode, $stopwatch.Elapsed, $log)
 }
 
+# UE 5.8 archives straight into the archive directory; older versions add a Windows\ folder.
 $staged = Join-Path $OutDir 'Windows'
-if (-not (Test-Path $staged)) { $staged = (Get-ChildItem $OutDir -Directory | Select-Object -First 1).FullName }
+if (-not (Test-Path $staged)) { $staged = $OutDir }
 $files = @(Get-ChildItem $staged -Recurse -File)
 $bytes = ($files | Measure-Object Length -Sum).Sum
 $exe = Get-ChildItem $staged -Filter *.exe -File | Select-Object -First 1

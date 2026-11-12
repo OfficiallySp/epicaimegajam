@@ -360,6 +360,12 @@ namespace
 				if (I != INDEX_NONE) D.LoadLevel(I);
 			});
 			RegisterDirectorCmd(TEXT("mj.Next"), TEXT("Load the next level."), [](AMJDirector& D, const TArray<FString>&) { D.NextLevel(); });
+			RegisterDirectorCmd(TEXT("mj.LoadFile"), TEXT("mj.LoadFile <path> [level]: replace the campaign with a level text file (development)."), [](AMJDirector& D, const TArray<FString>& A)
+			{
+				FString Errors;
+				if (A.Num() > 0 && MJ::LoadLevelFile(A[0], Errors)) D.LoadLevel(A.Num() > 1 ? FMath::Max(0, MJ::FindLevel(A[1])) : 0);
+				if (!Errors.IsEmpty()) UE_LOG(LogMJ, Warning, TEXT("mj.LoadFile: %s"), *Errors);
+			});
 			RegisterDirectorCmd(TEXT("mj.Cut"), TEXT("mj.Cut <track> <index>"), [](AMJDirector& D, const TArray<FString>& A) { D.BackToEdit(); D.DoCut(ArgInt(A, 0), ArgInt(A, 1)); });
 			RegisterDirectorCmd(TEXT("mj.Move"), TEXT("mj.Move <track> <from> <to>"), [](AMJDirector& D, const TArray<FString>& A) { D.BackToEdit(); D.DoMove(ArgInt(A, 0), ArgInt(A, 1), ArgInt(A, 2)); });
 			RegisterDirectorCmd(TEXT("mj.Insert"), TEXT("mj.Insert <bin index> <track> <at>"), [](AMJDirector& D, const TArray<FString>& A) { D.BackToEdit(); D.DoInsert(ArgInt(A, 0), ArgInt(A, 1), ArgInt(A, 2)); });

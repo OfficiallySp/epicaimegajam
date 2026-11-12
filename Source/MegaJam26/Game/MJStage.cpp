@@ -11,13 +11,17 @@
 #include "Engine/TextureCube.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Misc/PackageName.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace
 {
+	/** Load an optional asset by object path ("/Game/Dir/Name.Name"); missing assets are normal (primitive fallbacks). */
 	template <class T>
 	T* LoadQuiet(const TCHAR* Path)
 	{
+		const FString Package = FPackageName::ObjectPathToPackageName(FString(Path));
+		if (!FPackageName::DoesPackageExist(Package)) return nullptr;
 		return Cast<T>(StaticLoadObject(T::StaticClass(), nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet));
 	}
 
@@ -220,7 +224,12 @@ void AMJStage::BuildFigure(const FMJActorDef& D, FMJFigure& Out)
 	const FString MeshPath = FString::Printf(TEXT("/Game/MegaJam26/Characters/SM_%s.SM_%s"), *D.Look.ToString(), *D.Look.ToString());
 	if (UStaticMesh* Custom = LoadQuiet<UStaticMesh>(*MeshPath))
 	{
-		AddMesh(Out.Tilt, Custom, FVector::ZeroVector, FVector(1.f), nullptr);
+		// Generated figurines arrive at any size and pivot: stand them on the tile, scaled to a common height.
+		const FBoxSphereBounds B = Custom->GetBounds();
+		const float Scale = FigureHeight / FMath::Max(1.f, B.BoxExtent.Z * 2.f);
+		const FRotator Rot(0.f, FigureYaw, 0.f);
+		const FVector Foot = B.Origin - FVector(0.f, 0.f, B.BoxExtent.Z);
+		AddMesh(Out.Tilt, Custom, -Rot.RotateVector(Foot * Scale), FVector(Scale), nullptr, Rot);
 	}
 	else if (D.Role == EMJRole::Crusher)
 	{
