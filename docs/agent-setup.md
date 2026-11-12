@@ -1,5 +1,8 @@
 # Claude and MCP setup — 11 November 2026
 
+**12 November recheck:** [Game-jam tool health](tool-health-2026-11-12.md) records fresh MCP, account,
+editor PIE, compiler, Blender, audio and archive tests, plus the remaining login/upload gaps.
+
 Shane's selected services are **Meshy, fal, Hyper3D and PBRgen**. Use Unreal + Claude Code for development,
 Meshy/Hyper3D for 3D assets, fal for images/audio, and PBRgen's web/export workflow for materials.
 Keep Git/LFS and Blender. Account setup does not by itself confirm perk redemption or API entitlement.

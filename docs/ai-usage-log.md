@@ -32,3 +32,10 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   in the rules notes, agent instructions and runbook · theme metadata kept; no game concept, gameplay or assets added
 
 ## Jam (from Thu 12 Nov 05:00 GMT)
+
+- 2026-11-12 10:30–10:38 GMT · Codex / GPT-6 Astra in T3 Code · test current external tools and MCPs;
+  verify four project MCPs and global connections, run a clean ten-second Unreal PIE test, compile/run a C++
+  probe, round-trip a Blender GLB and validate audio/ZIP tooling · health report and setup link kept;
+  temporary fixtures remain ignored; no paid generation, Claude inference, game-content changes or publication.
+  Flagged Unity tool-list timeout, GitHub app reauthentication, PBRgen browser login and itch upload setup;
+  Melty's CLI unexpectedly printed its token, which was omitted from repo files and needs rotation.
