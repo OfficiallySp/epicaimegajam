@@ -39,3 +39,9 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   temporary fixtures remain ignored; no paid generation, Claude inference, game-content changes or publication.
   Flagged Unity tool-list timeout, GitHub app reauthentication, PBRgen browser login and itch upload setup;
   Melty's CLI unexpectedly printed its token, which was omitted from repo files and needs rotation.
+
+- 2026-11-12 14:00–14:35 and 19:00–19:15 GMT · Claude Fable 5.2 (Claude Code in T3 Code) + Unreal MCP · brief: "create a
+  game for the theme, plan it however you want". Chose the concept (Fix It In Post), wrote `docs/design.md`, then the
+  first playable in C++: beat simulation, brute-force solver, ASCII level format, procedural set builder, custom Slate
+  timeline UI, console commands for every action, a Python MCP dev toolset, base materials and the stage map via
+  editor Python · all kept · first playable loop verified in PIE by Output Log and screenshots; no human code

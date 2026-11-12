@@ -2,7 +2,7 @@
   "FileVersion": 3,
   "EngineAssociation": "5.8",
   "Category": "",
-  "Description": "MegaJam26 development shell. No jam-specific gameplay before kickoff.",
+  "Description": "Fix It In Post - 2026 Epic AI MegaJam entry (theme: Director's Cut).",
   "Modules": [
     {
       "Name": "MegaJam26",
@@ -14,6 +14,7 @@
     { "Name": "AndroidFileServer", "Enabled": false },
     { "Name": "ModelContextProtocol", "Enabled": true, "TargetAllowList": ["Editor"] },
     { "Name": "AllToolsets", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "LiveCodingToolset", "Enabled": true, "TargetAllowList": ["Editor"] },
     { "Name": "Terminal", "Enabled": true, "TargetAllowList": ["Editor"] },
     { "Name": "PythonScriptPlugin", "Enabled": true, "TargetAllowList": ["Editor"] },
     { "Name": "EditorScriptingUtilities", "Enabled": true, "TargetAllowList": ["Editor"] }

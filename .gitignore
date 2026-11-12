@@ -44,3 +44,7 @@ meshy_output/
 .env
 *.secret
 butler_creds
+
+# Python bytecode from editor scripts
+__pycache__/
+*.pyc
