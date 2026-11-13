@@ -59,7 +59,7 @@ if (-not $CheckOnly) {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     if ($sevenZip) {
         Write-Step "7-Zip -> $ZipPath"
-        & $sevenZip a -tzip -mx=5 -r '-xr!*.pdb' $ZipPath (Join-Path $BuildDir '*') | Out-Null
+        & $sevenZip a -tzip -mx=5 -r '-xr!*.pdb' '-xr!Saved' $ZipPath (Join-Path $BuildDir '*') | Out-Null   # Saved\ = logs and save games from local test runs
         if ($LASTEXITCODE -ne 0) { throw "7z failed with exit code $LASTEXITCODE" }
     } else {
         Write-Step "Compress-Archive -> $ZipPath (install 7-Zip for a faster zip that excludes *.pdb)"
