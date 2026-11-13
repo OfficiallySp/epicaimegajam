@@ -60,6 +60,7 @@ namespace
 		case EMJRole::Guard: return Hex(0xE5484D);
 		case EMJRole::Camera: return Hex(0xB0B4BF);
 		case EMJRole::Crusher: return Hex(0xFF7A45);
+		case EMJRole::Villain: return Hex(0xD9365E);
 		default: return Hex(0x9AA3B5);
 		}
 	}
@@ -73,6 +74,7 @@ namespace
 		case EMJRole::Guard: return TEXT("GUARD");
 		case EMJRole::Camera: return TEXT("CAMERA");
 		case EMJRole::Crusher: return TEXT("VEHICLE");
+		case EMJRole::Villain: return TEXT("THE VILLAIN");
 		default: return TEXT("SET");
 		}
 	}
@@ -779,8 +781,9 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 	Button(P, TEXT("reset"), FVector2f(BX, BY), FVector2f(170.f, BH), TEXT("THEATRICAL CUT"), Hex(0x343946), bEdit && D->Cost() > 0, TEXT("R  -  RESET"));
 	BX += 190.f;
 
-	Button(P, TEXT("menu"), FVector2f(L.W - 24.f - 110.f, BY), FVector2f(110.f, BH), TEXT("MENU"), Hex(0x343946), D->Phase != EMJPhase::Printed, TEXT("ESC"));
-	Button(P, TEXT("hint"), FVector2f(L.W - 24.f - 110.f - 12.f - 110.f, BY), FVector2f(110.f, BH), TEXT("HINT"), Hex(0x2B5F8A), bEdit, TEXT("H"));
+	const float ToolRight = L.BinW > 0.f ? L.BinX - 16.f : L.W - 24.f; // the deleted-scenes bin owns the right column
+	Button(P, TEXT("menu"), FVector2f(ToolRight - 110.f, BY), FVector2f(110.f, BH), TEXT("MENU"), Hex(0x343946), D->Phase != EMJPhase::Printed, TEXT("ESC"));
+	Button(P, TEXT("hint"), FVector2f(ToolRight - 110.f - 12.f - 110.f, BY), FVector2f(110.f, BH), TEXT("HINT"), Hex(0x2B5F8A), bEdit, TEXT("H"));
 
 	if (D->ToastTime > 0.f && !D->Toast.IsEmpty())
 	{
@@ -789,10 +792,11 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 	}
 	else if (bEdit)
 	{
-		FString Tools = TEXT("Tools:  CUT (X or drag off the strip)");
-		if (Lv.Tools & MJTool_Move) Tools += TEXT("   SPLICE (drag along the strip)");
-		if (Lv.Tools & MJTool_Insert) Tools += TEXT("   RESTORE (drag from Deleted Scenes)");
-		P.Text(Tools, FVector2f(BX + 8.f, BY + BH * 0.5f), P.Font(14.f, TEXT("Regular")), ColDim, 0.f, 0.5f);
+		FString Tools = TEXT("CUT: X or drag off");
+		if (Lv.Tools & MJTool_Move) Tools += TEXT("    SPLICE: drag along the strip");
+		if (Lv.Tools & MJTool_Insert) Tools += TEXT("    RESTORE: drag from the bin");
+		const FSlateFontInfo ToolFont = P.Font(14.f, TEXT("Regular"));
+		if (BX + 8.f + P.Measure(Tools, ToolFont).X < ToolRight - 250.f) P.Text(Tools, FVector2f(BX + 8.f, BY + BH * 0.5f), ToolFont, ColDim, 0.f, 0.5f);
 	}
 
 	// ---- ruler
