@@ -1,6 +1,7 @@
 // Fix It In Post - the game flow.
 #include "Game/MJDirector.h"
 
+#include "AudioMixerBlueprintLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -150,6 +151,22 @@ void AMJDirector::SetMusic(FName Cue)
 	{
 		Music = UGameplayStatics::SpawnSound2D(this, Sound, 1.f, 1.f, 0.f, nullptr, false, true);
 		if (Music) { Music->bIsUISound = true; Music->FadeIn(0.8f, Save ? Save->MusicVolume : 0.6f); }
+	}
+}
+
+void AMJDirector::ToggleAudioCapture()
+{
+	if (!bCapturingAudio)
+	{
+		UAudioMixerBlueprintLibrary::StartRecordingOutput(this, 0.f, nullptr);
+		bCapturingAudio = true;
+		UE_LOG(LogMJ, Display, TEXT("Audio capture started"));
+	}
+	else
+	{
+		UAudioMixerBlueprintLibrary::StopRecordingOutput(this, EAudioRecordingExportType::WavFile, TEXT("MJCapture"), FString(), nullptr, nullptr);
+		bCapturingAudio = false;
+		UE_LOG(LogMJ, Display, TEXT("Audio capture written to Saved/BouncedWavFiles/MJCapture.wav"));
 	}
 }
 

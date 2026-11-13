@@ -92,6 +92,10 @@ public:
 
 	void Sfx(FName Cue, float Volume = 1.f, float Pitch = 1.f);
 
+	/** Capture: F9 starts / stops recording the game's own audio mix to Saved/BouncedWavFiles/MJCapture.wav (for the gameplay video). */
+	void ToggleAudioCapture();
+	bool bCapturingAudio = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float BeatsPerSecond = 2.3f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FastMultiplier = 3.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float IntroSpeed = 1.25f;

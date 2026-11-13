@@ -6,6 +6,6 @@ public class MegaJam26 : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         PublicIncludePaths.Add(ModuleDirectory); // sources include as "Sim/...", "Game/...", "UI/..."
-        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "ApplicationCore", "Slate", "SlateCore" });
+        PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore", "ApplicationCore", "Slate", "SlateCore", "AudioMixer" });
     }
 }

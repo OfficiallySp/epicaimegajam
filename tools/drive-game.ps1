@@ -70,7 +70,7 @@ function To-Screen([double]$vx, [double]$vy) {
     , @([int]($c.X + $vx * $s), [int]($c.Y + $vy * $s))
 }
 function Move-To([double]$vx, [double]$vy) { $p = To-Screen $vx $vy; [void][MJIn]::SetCursorPos($p[0], $p[1]) }
-$keys = @{ space = 0x20; enter = 0x0D; esc = 0x1B; left = 0x25; right = 0x27; x = 0x58; z = 0x5A; y = 0x59; r = 0x52; h = 0x48; f = 0x46; f11 = 0x7A }
+$keys = @{ space = 0x20; enter = 0x0D; esc = 0x1B; left = 0x25; right = 0x27; x = 0x58; z = 0x5A; y = 0x59; r = 0x52; h = 0x48; f = 0x46; f9 = 0x78; f11 = 0x7A; pgdn = 0x22; pgup = 0x21 }
 $logMark = if (Test-Path $logFile) { (Get-Content $logFile).Count } else { 0 }
 $failed = $false
 

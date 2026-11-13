@@ -549,6 +549,7 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 	const bool bGo = K == EKeys::SpaceBar || K == EKeys::Enter;
 
 	if (K == EKeys::F11 && !KeyEvent.IsRepeat()) { D->ToggleFullscreen(); return FReply::Handled(); }
+	if (K == EKeys::F9 && !KeyEvent.IsRepeat()) { D->ToggleAudioCapture(); return FReply::Handled(); }
 	if (D->Menu != EMJMenu::None)
 	{
 		if (K == EKeys::Escape && !KeyEvent.IsRepeat()) { D->CloseMenu(); return FReply::Handled(); }

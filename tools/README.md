@@ -32,3 +32,16 @@ Upload the exact zip through the itch.io web dashboard so its filename stays `Te
 (itch re-serves butler-pushed builds under its own filename). Keep `upload.ps1` for iteration builds and as a
 fallback; if the fallback is used, rename the upload's display name in the dashboard and download once to check.
 Full list: `docs/submission-checklist.md`.
+
+## Added during the jam (agent tooling)
+| Script | What it does |
+|---|---|
+| `rebuild.ps1` | Closes this project's editor, full editor build (`-NoHotReloadFromIDE`), reopens it and waits for Unreal MCP. |
+| `mcp/unreal-call.mjs` | Calls any Unreal MCP toolset tool from the shell: `py "@script.py"`, `console "mj.Dump"`, `pie start|stop`. |
+| `mcp/meshy-call.mjs` | Calls the Meshy MCP server from the shell with the key from `.claude/settings.local.json`. |
+| `latest-shot.ps1` | Copies the newest `shot showui` screenshot to `.cache/shot.png`. |
+| `capture-window.ps1` | PNG of a window's client area (packaged game). |
+| `drive-game.ps1` | Plays the packaged build with real mouse and keyboard input: `click`, `drag`, `key`, `shot`, `record`, `expect <log regex>`. Coordinates are the HUD's 1920x1080 canvas. |
+| `make-video.ps1` | Records the 58 s gameplay video hands-free: four scenes, window capture plus the in-game F9 audio capture, cut together. Output `dist/video/FixItInPost_gameplay.mp4`. |
+| `make_backdrops.py` | Paints the three backdrop atlases with Pillow. |
+| `blender/make_kit.py`, `check_kit.py` | Generate and verify the 20-piece set kit. |
