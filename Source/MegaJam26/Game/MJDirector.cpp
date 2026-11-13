@@ -1,6 +1,7 @@
 // Fix It In Post - the game flow.
 #include "Game/MJDirector.h"
 
+#include "Async/Async.h"
 #include "AudioMixerBlueprintLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
@@ -299,6 +300,13 @@ void AMJDirector::LoadLevel(int32 Index)
 	bIntro = false;
 	IntroHold = 0.f;
 	Menu = EMJMenu::None;
+	// the simulation is plain data, so the hint solver can chew on a copy of the scene off the game thread
+	HintFuture = Async(EAsyncExecution::ThreadPool, [Scene = Level]()
+	{
+		FMJSolveReport Report;
+		MJ::Solve(Scene, Scene.MaxEdits, Report, 600000);
+		return Report;
+	});
 	Resim();
 	if (Stage)
 	{
@@ -474,8 +482,10 @@ void AMJDirector::Hint()
 	if (Phase != EMJPhase::Edit) return;
 	if (!bHintSolved)
 	{
+		// normally finished long ago; the two biggest scenes take a second or two, and then this waits for the rest
 		FMJSolveReport Report;
-		MJ::Solve(Level, Level.MaxEdits, Report, 600000);
+		if (HintFuture.IsValid()) Report = HintFuture.Get();
+		else MJ::Solve(Level, Level.MaxEdits, Report, 600000);
 		bHintSolved = true;
 		bHintOk = Report.bHasBest;
 		HintTarget = Report.Best;

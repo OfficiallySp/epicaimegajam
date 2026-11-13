@@ -4,6 +4,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/SaveGame.h"
+#include "Async/Future.h"
+#include "Sim/MJSolver.h"
 #include "Sim/MJTypes.h"
 #include "MJDirector.generated.h"
 
@@ -149,6 +151,7 @@ private:
 	int32 CachedCost = 0;
 	int32 LastBeatFired = -1;
 	float EndHold = 0.f;
+	TFuture<FMJSolveReport> HintFuture; // the solver runs on a worker thread from the moment a scene loads
 	bool bHintSolved = false, bHintOk = false;
 	FMJEditState HintTarget;
 };
