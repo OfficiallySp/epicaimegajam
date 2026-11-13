@@ -31,7 +31,7 @@ director can: **in post**.
 The scene re-simulates the instant you touch it, and you can scrub the playhead back and forth like in an editing
 suite. When you think it works: roll film.
 
-**16 scenes in 3 reels**, each with an edit budget, a par, and a studio note for a third star (some need a completely
+**18 scenes in 3 reels**, each with an edit budget, a par, and a studio note for a third star (some need a completely
 different cut). A hint button names one edit if you are stuck.
 
 Theme: **Director's Cut**. Your vision, your edits, your final cut. The shelved clip that never made it is a real

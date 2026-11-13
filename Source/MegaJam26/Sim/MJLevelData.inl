@@ -304,6 +304,45 @@ bin 2 | s3=FLOOR_IT
 rules edits=2 par=1 tools=cut,move,insert
 end
 
+level r3s5
+title Pip's Big Scene
+reel 3
+slug INT. THE BARON'S STUDY - NIGHT
+script PIP gets the drop on the BARON. ACE strolls out over him.
+note The studio deleted the sidekick's only heroic moment. A punch only lands on the tile in front.
+map
+###########
+#1.....3.X#
+#######.###
+#2........#
+###########
+endmap
+actor star ACE e locked | z6=WAITS e e e e e e e e
+actor ally PIP e | e e e e e e z2=HESITATES n
+actor villain BARON w locked | z9=GLOATS z9=GLOATS
+bin 1 | a=PUNCH
+rules edits=2 par=2 tools=cut,move,insert
+end
+
+level r3s6
+title Smile For The Camera
+reel 3
+slug INT. THE BARON'S GALLERY - NIGHT
+script ACE walks in under the camera, takes the diamond and walks out the way he came.
+note The camera's sweep is hard-wired, clip for clip. Two of its deleted scenes survive. Line the strips up.
+map
+#########
+#X1...*.#
+####2####
+#########
+endmap
+actor star ACE e locked | e e e e u=GRAB w w w w w
+actor camera CAMERA s | z=IDLE! ln=PAN! z2=WATCH! ls=PAN! z2=IDLE! ln=PAN! z2=WATCH! ls=PAN! z2=IDLE!
+bin 1 | z=GLITCH z4=LOOP_FOOTAGE
+rules edits=2 par=1 tools=cut,move,insert
+needitem
+end
+
 level r3s4
 title The Showdown
 reel 3
