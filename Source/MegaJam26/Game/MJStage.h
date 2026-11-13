@@ -65,6 +65,9 @@ public:
 
 	void SetCamMode(EMJCamMode Mode, bool bSnap = false);
 
+	/** Screening coverage: 0 = the wide master, 1 = close on the star, 3 = high three-quarter. A change of shot is a hard cut. */
+	void SetShot(int32 InShot);
+
 	/** Lights, exposure and grading for a reel. */
 	UFUNCTION(BlueprintCallable, Category = "MegaJam") void ApplyLook(int32 Reel);
 
@@ -145,5 +148,8 @@ private:
 	FRotator CamRot = FRotator::ZeroRotator;
 	float CamFocus = 3000.f;
 	bool bCamInit = false;
+	int32 Shot = 0;
+	bool bShotCut = false;
+	int32 StarFigure = 0;
 	float CamTime = 0.f;
 };

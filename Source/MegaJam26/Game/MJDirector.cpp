@@ -658,7 +658,19 @@ void AMJDirector::Tick(float DeltaSeconds)
 		}
 	}
 
-	if (Stage) Stage->Apply(Level, Sim, PlayTime);
+	if (Stage)
+	{
+		// a cut that works gets coverage: jump cuts between the master and close-ups, ending on the star
+		int32 Shot = 0;
+		if (Phase == EMJPhase::Screening && !bIntro && Sim.IsWin())
+		{
+			static const int32 Pattern[] = { 0, 0, 1, 1, 3, 3, 0, 1, 3, 3, 1, 1 };
+			const int32 Beat = FMath::FloorToInt(PlayTime);
+			Shot = Beat >= Sim.EndBeat - 2 ? 1 : Pattern[Beat % UE_ARRAY_COUNT(Pattern)];
+		}
+		Stage->SetShot(Shot);
+		Stage->Apply(Level, Sim, PlayTime);
+	}
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

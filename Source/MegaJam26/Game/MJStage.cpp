@@ -484,6 +484,8 @@ void AMJStage::Build(const FMJLevelDef& L)
 		}
 	}
 
+	StarFigure = L.StarIndex();
+	Shot = 0;
 	Figures.SetNum(L.Actors.Num());
 	for (int32 i = 0; i < L.Actors.Num(); ++i) BuildFigure(L.Actors[i], Figures[i]);
 
@@ -540,6 +542,26 @@ void AMJStage::ComputeCamera(EMJCamMode Mode, FVector& OutLoc, FRotator& OutRot,
 	const FVector Target(-ShiftX, ShiftY, 20.f);
 	OutLoc = Target - OutRot.Vector() * Dist;
 	OutFocus = Dist + ShiftX * FMath::Cos(PitchRad); // keep the middle of the set, not the aim point, in focus
+
+	// coverage: when the cut works the screening is shot like a film, with close-ups that follow the star
+	if (Mode == EMJCamMode::Screening && Shot > 0 && Figures.IsValidIndex(StarFigure) && Figures[StarFigure].Pivot)
+	{
+		const FVector Subject = Figures[StarFigure].Pivot->GetRelativeLocation();
+		const FVector Offset = Shot == 1 ? FVector(-640.f, -430.f, 470.f) : FVector(-600.f, 540.f, 620.f);
+		const FVector LookAt = Subject + FVector(50.f, Shot == 1 ? 40.f : -30.f, 55.f);
+		OutLoc = Subject + Offset;
+		OutRot = (LookAt - OutLoc).Rotation();
+		// tilt down a touch so the subject sits in the part of the frame the timeline panel leaves free
+		OutRot.Pitch -= PanelFraction * 0.5f * FMath::RadiansToDegrees(2.f * FMath::Atan(TanV));
+		OutFocus = FVector::Dist(OutLoc, Subject + FVector(0.f, 0.f, 55.f));
+	}
+}
+
+void AMJStage::SetShot(int32 InShot)
+{
+	if (InShot == Shot) return;
+	Shot = InShot;
+	bShotCut = true;
 }
 
 void AMJStage::SetCamMode(EMJCamMode Mode, bool bSnap)
@@ -561,12 +583,20 @@ void AMJStage::Tick(float DeltaSeconds)
 	FVector Loc; FRotator Rot; float Focus;
 	ComputeCamera(CamMode, Loc, Rot, Focus);
 	CamTime += DeltaSeconds;
-	if (CamMode != EMJCamMode::Edit)
+	const bool bCoverage = CamMode == EMJCamMode::Screening && Shot > 0;
+	if (CamMode != EMJCamMode::Edit && !bCoverage)
 	{
 		// a slow drift so screenings and the title never look static
 		Loc += FVector(0.f, FMath::Sin(CamTime * 0.33f) * (CamMode == EMJCamMode::Title ? 90.f : 55.f), 0.f);
 	}
-	const float K = 1.f - FMath::Exp(-CamLerpSpeed * DeltaSeconds);
+	if (bShotCut)
+	{
+		// a change of shot is a cut, not a move
+		bShotCut = false;
+		CamLoc = Loc; CamRot = Rot; CamFocus = Focus;
+		Camera->PostProcessSettings.DepthOfFieldFstop = bCoverage ? 7.f : DofFstop * 0.7f;
+	}
+	const float K = 1.f - FMath::Exp(-(bCoverage ? 7.f : CamLerpSpeed) * DeltaSeconds);
 	CamLoc = FMath::Lerp(CamLoc, Loc, K);
 	CamRot = FMath::Lerp(CamRot, Rot, K);
 	CamFocus = FMath::Lerp(CamFocus, Focus, K);
@@ -574,7 +604,13 @@ void AMJStage::Tick(float DeltaSeconds)
 	Camera->SetFieldOfView(CamFov);
 	Camera->PostProcessSettings.DepthOfFieldFocalDistance = CamFocus;
 	// the cutting room needs the whole set readable; the title and screenings can afford a much shallower focus
-	const float WantFstop = CamMode == EMJCamMode::Edit ? DofFstop : (CamMode == EMJCamMode::Title ? DofFstop * 0.45f : DofFstop * 0.7f);
+	// close-ups track a hopping figurine, so they focus on where the camera really is and stop the lens right down
+	if (bCoverage && Figures.IsValidIndex(StarFigure) && Figures[StarFigure].Pivot)
+	{
+		CamFocus = FVector::Dist(CamLoc, Figures[StarFigure].Pivot->GetRelativeLocation() + FVector(0.f, 0.f, 55.f));
+		Camera->PostProcessSettings.DepthOfFieldFocalDistance = CamFocus;
+	}
+	const float WantFstop = bCoverage ? 7.f : (CamMode == EMJCamMode::Edit ? DofFstop : (CamMode == EMJCamMode::Title ? DofFstop * 0.45f : DofFstop * 0.7f));
 	Camera->PostProcessSettings.DepthOfFieldFstop = FMath::Lerp(Camera->PostProcessSettings.DepthOfFieldFstop, WantFstop, K);
 
 	// idle motion that does not depend on the simulation
