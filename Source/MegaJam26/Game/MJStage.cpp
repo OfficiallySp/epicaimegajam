@@ -748,7 +748,15 @@ void AMJStage::Apply(const FMJLevelDef& L, const FMJSimResult& R, float Time)
 		case EMJFix::Laser:
 		{
 			const bool bOn = !((A > 0.82f ? S1 : S0).Active & Bit);
-			for (UStaticMeshComponent* Beam : V.Beams) { if (Beam) Beam->SetVisibility(bOn); }
+			// an idle grid keeps short glowing stubs, so a trap that has not sprung yet can still be seen
+			for (UStaticMeshComponent* Beam : V.Beams)
+			{
+				if (!Beam) continue;
+				FVector Loc = Beam->GetRelativeLocation();
+				Loc.Z = bOn ? 55.f : 10.f;
+				Beam->SetRelativeLocation(Loc);
+				Beam->SetRelativeScale3D(FVector(0.07f, 0.07f, bOn ? 1.0f : 0.1f));
+			}
 			break;
 		}
 		case EMJFix::Plate:
