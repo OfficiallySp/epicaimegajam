@@ -351,6 +351,22 @@ void AMJDirector::QuitGame()
 	UKismetSystemLibrary::QuitGame(this, GetWorld()->GetFirstPlayerController(), EQuitPreference::Quit, false);
 }
 
+bool AMJDirector::IsLowGraphics() const
+{
+	const UGameUserSettings* Settings = GEngine ? GEngine->GetGameUserSettings() : nullptr;
+	const int32 Quality = Settings ? Settings->GetOverallScalabilityLevel() : 3;
+	return Quality >= 0 && Quality < 3;
+}
+
+void AMJDirector::ToggleGraphics()
+{
+	if (UGameUserSettings* Settings = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+	{
+		Settings->SetOverallScalabilityLevel(IsLowGraphics() ? 3 : 1);
+		Settings->ApplySettings(false);
+	}
+}
+
 void AMJDirector::ToggleFullscreen()
 {
 	if (UGameUserSettings* Settings = GEngine ? GEngine->GetGameUserSettings() : nullptr)

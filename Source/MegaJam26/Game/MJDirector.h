@@ -66,6 +66,8 @@ public:
 	void CloseMenu();
 	void QuitGame();
 	void ToggleFullscreen();
+	void ToggleGraphics();          // HIGH (Lumen, everything on) or LOW for weaker GPUs
+	bool IsLowGraphics() const;
 	void AdjustVolume(bool bMusic, float Delta);
 	int32 StarMask(const FString& LevelId) const;
 	int32 TotalStars() const;

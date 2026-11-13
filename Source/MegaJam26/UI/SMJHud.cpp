@@ -437,6 +437,7 @@ void SMJHud::Click(FName Id)
 	else if (Id == Title) D->GoTitle();
 	else if (Id == Quit) D->QuitGame();
 	else if (Id == Full) D->ToggleFullscreen();
+	else if (Id == FName("gfx")) D->ToggleGraphics();
 	else if (Id == MusicDn) D->AdjustVolume(true, -0.1f);
 	else if (Id == MusicUp) D->AdjustVolume(true, 0.1f);
 	else if (Id == SfxDn) D->AdjustVolume(false, -0.1f);
@@ -1163,12 +1164,13 @@ void SMJHud::PaintTitle(FMJPaint& P, const FLayout& L) const
 	Button(P, TEXT("play"), FVector2f(X, 708.f), FVector2f(360.f, 68.f), bStarted ? TEXT("CONTINUE") : TEXT("START THE CUT"), ColAmber, true, TEXT("SPACE"));
 	Button(P, TEXT("scenes"), FVector2f(X, 792.f), FVector2f(360.f, 52.f), TEXT("SCENES"), Hex(0x343946), true);
 	Button(P, TEXT("full"), FVector2f(X, 856.f), FVector2f(174.f, 52.f), TEXT("FULLSCREEN"), Hex(0x343946), true, TEXT("F11"));
-	Button(P, TEXT("quit"), FVector2f(X + 186.f, 856.f), FVector2f(174.f, 52.f), TEXT("QUIT"), Hex(0x343946), true);
+	Button(P, TEXT("gfx"), FVector2f(X + 186.f, 856.f), FVector2f(174.f, 52.f), D->IsLowGraphics() ? TEXT("GRAPHICS: LOW") : TEXT("GRAPHICS: HIGH"), Hex(0x343946), true);
+	Button(P, TEXT("quit"), FVector2f(X, 920.f), FVector2f(360.f, 46.f), TEXT("QUIT"), Hex(0x343946), true);
 
 	P.Star(FVector2f(X + 400.f + 16.f, 742.f), 15.f, ColAmber);
 	P.Text(FString::Printf(TEXT("%d / %d"), D->TotalStars(), D->MaxStars()), FVector2f(X + 440.f, 742.f), P.Font(24.f), ColText, 0.f, 0.5f);
 
-	P.Text(TEXT("Made for the 2026 Epic AI MegaJam.  Theme: Director's Cut."), FVector2f(X + 4.f, 1010.f), P.Font(14.f, TEXT("Regular")), ColDim);
+	P.Text(TEXT("Made for the 2026 Epic AI MegaJam.  Theme: Director's Cut."), FVector2f(X + 4.f, 1012.f), P.Font(14.f, TEXT("Regular")), ColDim);
 	P.Text(TEXT("Mouse to edit.  SPACE rolls film."), FVector2f(X + 4.f, 1032.f), P.Font(14.f, TEXT("Regular")), ColDim);
 }
 
@@ -1213,7 +1215,7 @@ void SMJHud::PaintMenu(FMJPaint& P, const FLayout& L) const
 
 	if (D->Menu == EMJMenu::Pause)
 	{
-		const FVector2f Size(520.f, 640.f), Pos = Mid - Size * 0.5f;
+		const FVector2f Size(520.f, 690.f), Pos = Mid - Size * 0.5f;
 		P.Box(Pos + FVector2f(0.f, 8.f), Size, Hex(0x000000, 0.5f), 16.f);
 		P.Box(Pos, Size, Hex(0x14171F), 16.f);
 		P.Box(Pos, FVector2f(Size.X, 6.f), ColAmber, 3.f);
@@ -1238,7 +1240,9 @@ void SMJHud::PaintMenu(FMJPaint& P, const FLayout& L) const
 		}
 		Y += 10.f;
 		Button(P, TEXT("full"), FVector2f(BX, Y), FVector2f(BW * 0.5f - 6.f, 46.f), TEXT("FULLSCREEN"), Hex(0x343946), true, TEXT("F11"));
-		Button(P, TEXT("quit"), FVector2f(BX + BW * 0.5f + 6.f, Y), FVector2f(BW * 0.5f - 6.f, 46.f), TEXT("QUIT GAME"), Hex(0x5A2A2A), true);
+		Button(P, TEXT("gfx"), FVector2f(BX + BW * 0.5f + 6.f, Y), FVector2f(BW * 0.5f - 6.f, 46.f), D->IsLowGraphics() ? TEXT("GRAPHICS: LOW") : TEXT("GRAPHICS: HIGH"), Hex(0x343946), true);
+		Y += 56.f;
+		Button(P, TEXT("quit"), FVector2f(BX, Y), FVector2f(BW, 42.f), TEXT("QUIT GAME"), Hex(0x5A2A2A), true);
 		return;
 	}
 
