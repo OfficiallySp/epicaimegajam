@@ -68,7 +68,8 @@ Tooling only: agent instructions, packaging / zip / upload scripts, checklists, 
 project shell. No game code, design or assets. Details in `docs/asset-declarations.md`, section A.
 
 ## Third-party content
-Unreal Engine 5.8 (Epic Games) and its default Roboto / Droid fonts. No Fab or marketplace assets.
+Unreal Engine 5.8 (Epic Games) and its default Roboto / Droid fonts. Fonts: Bebas Neue and Courier Prime (SIL Open Font
+License 1.1, via Google Fonts). No Fab or marketplace assets.
 
 ---
 

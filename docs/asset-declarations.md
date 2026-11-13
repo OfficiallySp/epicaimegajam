@@ -15,7 +15,9 @@ their license, and (C) the AI tools used. Keep this file current in the same com
 ## B. Third-party assets (Fab, Epic samples, other)
 | Asset | Source / URL | License | Where used |
 |---|---|---|---|
-| Engine basic template scene (setup test only, unsaved) | Epic Games, ships with UE 5.8.4 | UE EULA | Used only for editor/PIE validation; not yet included in a game build |
+| Engine basic shapes and default fonts (Roboto, Droid Sans) | Epic Games, ships with UE 5.8.4 | UE EULA | A few primitive meshes (laser beams, pits); small UI text |
+| Bebas Neue (font) | Google Fonts, https://fonts.google.com/specimen/Bebas+Neue | SIL Open Font License 1.1 (Content/Fonts/OFL-BebasNeue.txt) | Titles and stamps |
+| Courier Prime Bold (font) | Google Fonts, https://fonts.google.com/specimen/Courier+Prime | SIL Open Font License 1.1 (Content/Fonts/OFL-CourierPrime.txt) | Script card, slug lines, timecode |
 | | | | |
 
 ## C. AI-generated assets

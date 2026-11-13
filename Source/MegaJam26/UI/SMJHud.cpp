@@ -2,9 +2,11 @@
 #include "UI/SMJHud.h"
 
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "Fonts/CompositeFont.h"
 #include "Fonts/FontMeasure.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Game/MJDirector.h"
+#include "Misc/Paths.h"
 #include "Rendering/DrawElements.h"
 #include "Rendering/RenderingCommon.h"
 #include "Rendering/SlateRenderer.h"
@@ -112,6 +114,21 @@ namespace
 	}
 }
 
+/** Fonts shipped as loose files in Content/Fonts (staged with the build); null when the file is missing. */
+static TSharedPtr<const FCompositeFont> FileFont(const TCHAR* File)
+{
+	struct FEntry { bool bTried = false; TSharedPtr<const FCompositeFont> Font; };
+	static TMap<FString, FEntry> Cache;
+	FEntry& E = Cache.FindOrAdd(File);
+	if (!E.bTried)
+	{
+		E.bTried = true;
+		const FString Path = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() / TEXT("Fonts") / File);
+		if (FPaths::FileExists(Path)) E.Font = MakeShared<FStandaloneCompositeFont>(FName(TEXT("Regular")), Path, EFontHinting::Default, EFontLoadingPolicy::LazyLoad);
+	}
+	return E.Font;
+}
+
 /** Draw helper working in virtual (1080-tall) coordinates. */
 struct FMJPaint
 {
@@ -137,9 +154,19 @@ struct FMJPaint
 		FSlateDrawElement::MakeBox(Out, Layer, Geo(P, Sz), FrameBrush(Radius * S, Thick * S, C), ESlateDrawEffect::None, FLinearColor::Transparent);
 	}
 
+	/** "Black" is the display face (Bebas Neue), "Mono" the screenplay face (Courier Prime); anything else is the engine's Roboto. */
 	FSlateFontInfo Font(float Px, const TCHAR* Face = TEXT("Bold")) const
 	{
-		return FCoreStyle::GetDefaultFontStyle(Face, FMath::Max(5.f, Px * S * 0.75f));
+		const float Size = FMath::Max(5.f, Px * S * 0.75f);
+		if (FCString::Stricmp(Face, TEXT("Black")) == 0)
+		{
+			if (const TSharedPtr<const FCompositeFont> Display = FileFont(TEXT("BebasNeue-Regular.ttf"))) return FSlateFontInfo(Display, Size * 1.16f);
+		}
+		else if (FCString::Stricmp(Face, TEXT("Mono")) == 0)
+		{
+			if (const TSharedPtr<const FCompositeFont> Script = FileFont(TEXT("CourierPrime-Bold.ttf"))) return FSlateFontInfo(Script, Size * 1.04f);
+		}
+		return FCoreStyle::GetDefaultFontStyle(Face, Size);
 	}
 
 	FVector2f Measure(const FString& T, const FSlateFontInfo& F) const
@@ -723,7 +750,7 @@ void SMJHud::PaintTopBar(FMJPaint& P, const FLayout& L) const
 	P.Box(FVector2f(0.f, 112.f), FVector2f(L.W, 2.f), Hex(0xFFB020, 0.5f));
 
 	P.Text(FString::Printf(TEXT("REEL %d   SCENE %d"), Lv.Reel, D->LevelIndex + 1), FVector2f(28.f, 14.f), P.Font(14.f), ColAmber);
-	P.Text(Lv.Title.ToUpper(), FVector2f(28.f, 34.f), P.Font(34.f, TEXT("Black")), ColText);
+	P.Text(Lv.Title.ToUpper(), FVector2f(28.f, 30.f), P.Font(42.f, TEXT("Black")), ColText);
 	P.Text(Lv.Slug, FVector2f(28.f, 80.f), P.Font(14.f, TEXT("Mono")), ColDim);
 
 	// the script page
@@ -1148,7 +1175,7 @@ void SMJHud::PaintMenu(FMJPaint& P, const FLayout& L) const
 		P.Box(Pos + FVector2f(0.f, 8.f), Size, Hex(0x000000, 0.5f), 16.f);
 		P.Box(Pos, Size, Hex(0x14171F), 16.f);
 		P.Box(Pos, FVector2f(Size.X, 6.f), ColAmber, 3.f);
-		P.Text(TEXT("PAUSED"), Pos + FVector2f(Size.X * 0.5f, 52.f), P.Font(38.f, TEXT("Black")), ColText, 0.5f, 0.5f);
+		P.Text(TEXT("PAUSED"), Pos + FVector2f(Size.X * 0.5f, 52.f), P.Font(48.f, TEXT("Black")), ColText, 0.5f, 0.5f);
 
 		const float BX = Pos.X + 60.f, BW = Size.X - 120.f;
 		float Y = Pos.Y + 100.f;
