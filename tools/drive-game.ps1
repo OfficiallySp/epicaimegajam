@@ -95,6 +95,15 @@ foreach ($raw in ($Steps -split '[;\r\n]+')) {
             $vk = $keys[$rest.ToLower()]; if (-not $vk) { throw "unknown key '$rest'" }
             [MJIn]::keybd_event([byte]$vk, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 70; [MJIn]::keybd_event([byte]$vk, 0, 2, [UIntPtr]::Zero); Start-Sleep -Milliseconds 300
         }
+        'gshot' {
+            # in-engine screenshot (F10 in the game): works with the monitor off, unlike 'shot'
+            $dir = Join-Path $saveDir 'Screenshots'; $before = Get-Date
+            [MJIn]::keybd_event(0x79, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 70; [MJIn]::keybd_event(0x79, 0, 2, [UIntPtr]::Zero)
+            $file = $null
+            for ($i = 0; $i -lt 30 -and -not $file; $i++) { Start-Sleep -Milliseconds 200; $file = Get-ChildItem $dir -Recurse -Filter *.png -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -ge $before.AddSeconds(-1) } | Sort-Object LastWriteTime -Descending | Select-Object -First 1 }
+            if ($file) { Start-Sleep -Milliseconds 300; $out = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $rest)); New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null; Copy-Item $file.FullName $out -Force; Write-Host "gshot $out" }
+            else { Write-Host "gshot FAILED: no screenshot appeared" -ForegroundColor Red; $failed = $true }
+        }
         'shot' {
             $c = Get-Client; $bmp = New-Object System.Drawing.Bitmap $c.W, $c.H; $g = [System.Drawing.Graphics]::FromImage($bmp)
             $g.CopyFromScreen($c.X, $c.Y, 0, 0, $bmp.Size); $out = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $rest))

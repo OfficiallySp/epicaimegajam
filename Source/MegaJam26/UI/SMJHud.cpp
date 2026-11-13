@@ -6,6 +6,7 @@
 #include "Fonts/FontMeasure.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Game/MJDirector.h"
+#include "UnrealClient.h"
 #include "Misc/Paths.h"
 #include "Rendering/DrawElements.h"
 #include "Rendering/RenderingCommon.h"
@@ -577,6 +578,7 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 
 	if (K == EKeys::F11 && !KeyEvent.IsRepeat()) { D->ToggleFullscreen(); return FReply::Handled(); }
 	if (K == EKeys::F9 && !KeyEvent.IsRepeat()) { D->ToggleAudioCapture(); return FReply::Handled(); }
+	if (K == EKeys::F10 && !KeyEvent.IsRepeat()) { FScreenshotRequest::RequestScreenshot(true); return FReply::Handled(); } // engine-side screenshot with UI: works with the monitor off
 	if (D->Menu != EMJMenu::None)
 	{
 		if (K == EKeys::Escape && !KeyEvent.IsRepeat()) { D->CloseMenu(); return FReply::Handled(); }

@@ -43,6 +43,9 @@ foreach ($c in $clips) {
     & $drive @driveArgs
     Start-Sleep -Seconds 2
     if (-not (Test-Path $video)) { throw "no video for $($c.Name)" }
+    # screen capture needs a live display: with the monitors off (or a locked session) every frame is black
+    $luma = (& ffmpeg -hide_banner -ss 2 -i $video -frames:v 1 -vf "signalstats,metadata=print:key=lavfi.signalstats.YAVG" -f null - 2>&1 | Select-String 'YAVG=' | Select-Object -First 1) -replace '.*YAVG=', ''
+    if ([double]$luma -lt 22) { Get-Process MegaJam26* -ErrorAction SilentlyContinue | Stop-Process -Force; throw "The recording of $($c.Name) is black (mean luma $luma). Turn the monitor on, unlock the session and run this again." }
     & ffmpeg -y -hide_banner -loglevel error -i $video -ss $AudioLead -i $wavPath -map 0:v -map 1:a -c:v libx264 -preset slow -crf 18 -pix_fmt yuv420p -r 60 -c:a aac -b:a 192k -ar 48000 -shortest $final
     if ($LASTEXITCODE -ne 0) { throw "mux failed for $($c.Name)" }
     $parts += $final
