@@ -744,11 +744,12 @@ void SMJHud::PaintTopBar(FMJPaint& P, const FLayout& L) const
 		P.Box(C - FVector2f(13.f, 13.f), FVector2f(26.f, 26.f), bUsed ? Hex(0x2A2D36) : ColAmber, 13.f);
 		if (bUsed) P.Line(C - FVector2f(7.f, 7.f), C + FVector2f(7.f, 7.f), ColRed, 3.f), P.Line(C + FVector2f(-7.f, 7.f), C + FVector2f(7.f, -7.f), ColRed, 3.f);
 	}
-	P.Text(FString::Printf(TEXT("%d of %d used   par %d"), Used, Max, Lv.Par), FVector2f(RX, 76.f), P.Font(13.f, TEXT("Regular")), ColDim, 1.f, 0.f);
+	P.Text(FString::Printf(TEXT("%d of %d used   par %d"), Used, Max, Lv.Par), FVector2f(RX, 72.f), P.Font(13.f, TEXT("Regular")), ColDim, 1.f, 0.f);
 	if (Lv.Bonus != EMJBonus::None)
 	{
-		P.Star(FVector2f(RX - 372.f, 92.f), 9.f, ColAmber);
-		P.Text(Lv.BonusText, FVector2f(RX - 358.f, 92.f), P.Font(13.f, TEXT("Regular")), ColText, 0.f, 0.5f);
+		const FSlateFontInfo BF = P.Font(13.f, TEXT("Regular"));
+		P.Text(Lv.BonusText, FVector2f(RX, 101.f), BF, ColText, 1.f, 0.5f);
+		P.Star(FVector2f(RX - P.Measure(Lv.BonusText, BF).X - 14.f, 100.f), 8.f, (D->StarMask(Lv.Id) & 4) ? ColAmber : Hex(0x6B7180));
 	}
 }
 
@@ -972,7 +973,7 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		P.Text(Why, Mid + FVector2f(0.f, 118.f), WF, Fade(ColText, K), 0.5f, 0.5f);
 		if (D->bIntro)
 		{
-			P.Text(TEXT("THAT WAS THE STUDIO'S THEATRICAL CUT"), Mid + FVector2f(0.f, -150.f), P.Font(18.f), Fade(ColAmber, K), 0.5f, 0.5f);
+			P.Text(TEXT("THAT WAS THE STUDIO'S THEATRICAL CUT"), Mid + FVector2f(0.f, -178.f), P.Font(18.f), Fade(ColAmber, K), 0.5f, 0.5f);
 			Button(P, TEXT("fix"), Mid + FVector2f(-150.f, 162.f), FVector2f(300.f, 56.f), TEXT("FIX IT IN POST"), ColAmber, true, TEXT("SPACE"));
 		}
 		else
