@@ -1,13 +1,15 @@
 // Fix It In Post - the campaign, as text. Included by MJLevels.cpp as an array of narrow raw strings (one per reel,
 // because MSVC limits a single literal to 16 KB). The same format can be loaded from a file at runtime for level
 // design without recompiling:  mj.LoadFile <path>   mj.SolveFile <path>
+// Every level here is checked by the brute-force solver (mj.SolveAll): the theatrical cut must fail, the minimum number
+// of edits must equal par, and any bonus must be reachable.
 //
 //   level <id>                         starts a level; 'end' (or the next 'level') finishes it
 //   title / slug / script / note <text>
 //   reel <1..3>
 //   map ... endmap                     rows of the set, see the legend below
 //   actor <role> <NAME> <facing n|e|s|w> [locked] [sight=N] [look=Mesh] | <strip>
-//                                      role: star ally guard camera crusher prop; '_' in NAME becomes a space
+//                                      role: star ally guard villain camera crusher prop; '_' in NAME becomes a space
 //   bin <actor index> | <clips>        deleted scenes that can be restored into that actor's strip
 //   rules edits=<max> par=<n> tools=cut,move,insert
 //   needitem                           the star must grab the prize (*) before reaching the mark
@@ -22,6 +24,7 @@
 //   u = use (lever / grab)   a = attack   c0+ / c0- = prop switches channel 0 on / off
 //   suffix =LABEL names the clip ('_' becomes a space), suffix ! locks the clip.
 
+// ---------------------------------------------------------------------------------------------- REEL 1: THE HEIST
 R"MJ(
 level r1s1
 title Product Placement
@@ -36,7 +39,7 @@ map
 #########
 endmap
 actor star ACE e | e e z2=SODA_AD e e e e
-actor guard GUARD s locked | z5=NAP ln z3
+actor guard GUARD s locked | z5=NAP ln=WAKE z3=GLARE
 rules edits=1 par=1 tools=cut
 end
 
@@ -44,35 +47,199 @@ level r1s2
 title The Laser Hall
 reel 1
 slug INT. LASER HALL - NIGHT
-script ACE crosses the hall while the grid is down.
-note Cutting a clip pulls everything after it one beat earlier.
+script ACE crosses the hall while the laser grid is down.
+note The grid has a strip too. ACE may only stand on the lasers while its strip says OFF.
+map
+###########
+#1...L...X#
+###########
+endmap
+actor star ACE e | e z2=SELFIE e e z=COMB_HAIR e e e e e
+actor prop LASER_GRID s locked | z3=ON c0+=OFF z=OFF c0-=ON z5=ON
+rules edits=2 par=1 tools=cut
+bonus maxbeats 8 | Tight edit: the scene runs 8 beats or less
+end
+
+level r1s3
+title The Night Watchman
+reel 1
+slug INT. GALLERY - NIGHT
+script ACE walks straight past the watchman, who is looking the other way.
+note ACE's agent forbids cutting his scenes. The watchman has no agent.
 map
 #########
-#1..L..X#
+###2#####
+###.#####
+#1.....X#
+###.#####
 #########
 endmap
-actor star ACE e | z2=SELFIE e e e e e e
-actor prop LASER_GRID s locked | z2=ON c0+=OFF z1=OFF c0-=ON z3=ON
+actor star ACE e locked | e e e e e e
+actor guard WATCHMAN s | z2=STARE ln=CHECK_CLOCK z=YAWN ls=STARE z3=STARE
 rules edits=1 par=1 tools=cut
+end
+
+level r1s4
+title The Scenic Route
+reel 1
+slug INT. ROTUNDA - NIGHT
+script ACE walks to his mark. That is the whole scene.
+note Cutting a move changes where everything after it happens.
+map
+#~~~~####
+#1....X.#
+#..L....#
+#########
+endmap
+actor star ACE e | e e s=DIVE e n=LEAP e e e
+rules edits=2 par=2 tools=cut
+end
+
+level r1s5
+title The Diamond
+reel 1
+slug INT. JEWEL ROOM - NIGHT
+script ACE lifts the diamond while the guard dozes, and walks out with it.
+note Not every pause is padding. The guard peers in on a schedule.
+map
+###########
+#1...*...X#
+#####2#####
+###########
+endmap
+actor star ACE e | e e z=YAWN z2=TIE_SHOE e e u=GRAB z2=ADMIRE e e e e
+actor guard GUARD s locked | z2=DOZE ln=PEER z=PEER ls=DOZE z3=DOZE ln=PEER z=PEER ls=DOZE z4=DOZE
+rules edits=2 par=1 tools=cut
+needitem
+bonus keep ADMIRE | Keep the money shot: ADMIRE stays in the cut
+end
+
+level r1s6
+title The Vault
+reel 1
+slug INT. VAULT - NIGHT
+script ACE beats the lasers, takes the diamond and slips out past the last guard.
+note Three strips, one scene. Work out who has to be where on each beat.
+map
+#############
+#1..L..*..X##
+#########2###
+#############
+endmap
+actor star ACE e | e z=SODA_AD e e z2=SELFIE e e e u=GRAB z=WINK e e e
+actor guard GUARD s | z5=NAP ln=WAKE z7=GLARE ls=DOZE z3=NAP
+actor prop LASER_GRID s locked | z3=ON c0+=OFF c0-=ON z9=ON
+rules edits=3 par=2 tools=cut
+needitem
+bonus maxbeats 11 | Tight edit: the scene runs 11 beats or less
 end
 )MJ",
 
+// -------------------------------------------------------------------------------------------- REEL 2: THE GETAWAY
 R"MJ(
 level r2s1
 title Hold The Door
 reel 2
 slug INT. SERVICE TUNNEL - NIGHT
-script PIP holds the door. ACE walks through it.
-note Drag a clip along its strip to splice it somewhere else.
+script PIP stands on the switch. ACE walks through both doors.
+note New tool: SPLICE. Drag a clip along its own strip to move it.
 map
 #########
-#1..D..X#
+#1..DD.X#
 #########
-#2.d....#
+#2..d...#
 #########
 endmap
-actor star ACE e | z=YAWN e e e e e e
-actor ally PIP e | e e e e z2
+actor star ACE e | e e e e e e e
+actor ally PIP e | z2=TEXTING e e e e
 rules edits=2 par=1 tools=cut,move
+end
+
+level r2s2
+title Pull
+reel 2
+slug INT. CONTROL ROOM - NIGHT
+script ACE pulls the lever, the door opens, ACE leaves.
+note USE works on whatever ACE is standing on when the clip plays.
+map
+#########
+#1.p.D.X#
+#########
+endmap
+actor star ACE e | e e e u=PULL e e e
+rules edits=2 par=1 tools=cut,move
+end
+
+level r2s3
+title Sucker Punch
+reel 2
+slug INT. LONG CORRIDOR - NIGHT
+script ACE creeps up while the goon checks his phone, and puts him to sleep.
+note A PUNCH knocks out whoever stands right in front of ACE. Guards see three tiles ahead.
+map
+##########
+#1....2.X#
+##########
+endmap
+actor star ACE e | a=WARM_UP e e e e z=BREATHE e e e
+actor guard GOON w locked | z2=GLARE ln=PHONE z3=PHONE lw=GLARE z6=GLARE
+rules edits=2 par=2 tools=cut,move
+end
+
+level r2s4
+title Dead Weight
+reel 2
+slug INT. LOADING BAY - NIGHT
+script ACE drops the goon on the pressure switch, and the goon keeps the door open.
+note A sleeping goon is still heavy.
+map
+#########
+#..d2D.X#
+#.#######
+#1#######
+#########
+endmap
+actor star ACE n | z2=STRETCH z3=PEP_TALK n n e e a=PUNCH e e e e e
+actor guard GOON w locked | z2=IDLE w=PATROL ln=SNIFF z3=LISTEN e=PATROL le=STARE z6=STARE
+rules edits=2 par=1 tools=cut,move
+bonus maxbeats 12 | Tight edit: the scene runs 12 beats or less
+end
+
+level r2s5
+title Look Both Ways
+reel 2
+slug EXT. BACK ALLEY - NIGHT
+script The goon never makes it across the road. ACE strolls out.
+note The getaway car is right on time. Somebody is being very careful crossing the road.
+map
+######3####
+######.####
+#1......2.X
+######.####
+######.####
+endmap
+actor star ACE e locked | z3=HIDES e e e e e e e e e
+actor guard GOON w | w z=LOOK_LEFT z=LOOK_RIGHT z=LOOK_LEFT z=WAIT_FOR_CAR w w z9=STAND_GUARD
+actor crusher CAR s locked | z3=REVS s s s s
+rules edits=2 par=1 tools=cut,move
+end
+
+level r2s6
+title Two Man Job
+reel 2
+slug INT. TWIN CORRIDORS - NIGHT
+script ACE holds the switch for PIP. PIP kills the lasers for ACE. ACE takes the diamond.
+note Two strips to fix. Each of them needs the other one's timing.
+map
+###########
+#1.d..M.*X#
+###########
+#2.D..q...#
+###########
+endmap
+actor star ACE e | e e e e e z2=HUMS e e u=GRAB e
+actor ally PIP e | e e e e e u=PULL z=WAVE
+rules edits=3 par=2 tools=cut,move
+needitem
 end
 )MJ",

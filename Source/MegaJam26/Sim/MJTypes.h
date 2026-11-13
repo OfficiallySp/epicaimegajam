@@ -36,6 +36,7 @@ enum class EMJRole : uint8
 	Camera,  // sees in a straight line; cannot be knocked out
 	Crusher, // vehicle / boulder: flattens whatever it drives into
 	Prop,    // no body on the set, only a strip (laser grid controller...)
+	Villain, // behaves like a guard (sight line, can be knocked out) but is billed as the villain
 };
 
 enum class EMJTile : uint8 { Void, Floor, Wall, Pit };

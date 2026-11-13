@@ -1,0 +1,22 @@
+# Fix It In Post props
+
+13 Nov 2026. Balance before: **932**; after: **761**. Spent **171 / 220 credits**: nine models at 15 and four images at 9. Previously paid tasks excluded; Baron download cost zero.
+
+All nine final images inspected and usable: complete uncropped objects, plain backgrounds, no text. Reel regenerated once to remove engraved text; lamp regenerated once to remove cropped cable. Car is glossier than the matte brief and merits art-direction review.
+
+All ten GLBs exceed 200 KiB and pass header/length checks. Triangle counts use index accessors; bounds use POSITION min/max in X × Y × Z exported GLB units (nominal metres, not intended game scale). All nodes have identity transforms. Models unchanged. Structural validation only: human review of backs, textures, thin lamp/scissors geometry and game scale remains.
+
+| Name | What it is | Image task ID | 3D task ID | Triangles | Bounding box | Credits this job | Exact image prompt written this job |
+|---|---|---|---|---:|---|---:|---|
+| camera | Toy security camera on short pole and round base | 01a1d131-b9c4-73e0-a888-6261a9fec3a6 | 01a1d238-fef2-76db-adcd-9e2df65c4127 | 12639 | 0.507324 × 0.95166 × 0.637207 | 15 | Pre-existing; no prompt written here |
+| car | Chunky cherry-red toy coupe with cream roof | 01a1d131-be95-7388-8ce6-8f013b89f181 | 01a1d239-0036-70f0-927c-cbe21f8c4029 | 11838 | 0.95752 × 0.487793 × 0.518066 | 15 | Pre-existing; no prompt written here |
+| diamond | Pale-blue cartoon diamond on dark pedestal | 01a1d131-c38a-77bf-a077-7c822994f105 | 01a1d238-fd18-70a4-8844-c4691516db0c | 11997 | 0.95459 × 0.914063 × 0.930176 | 15 | Pre-existing; no prompt written here |
+| clapper | Real upright clapperboard with blank slate | 01a1d131-c85f-7184-9da8-72bd45313bbf | 01a1d238-fd1b-7730-8408-ef8a41422f3e | 18569 | 0.92334 × 0.955078 × 0.112304 | 15 | Pre-existing; no prompt written here |
+| reel | Vintage aluminium film reel lying flat | 01a1d238-ffb0-71fb-8aca-79a51875e15a | 01a1d23a-f981-770a-8266-e4d6dddf75e3 | 12299 | 0.949708 × 0.148438 × 0.949219 | 24 | Photoreal vintage aluminium 35mm film reel lying flat, film tightly wound entirely inside the reel, no loose strip, plain unmarked metal, no engraving or lettering. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people. |
+| lamp | Articulated brass lamp with green enamel shade | 01a1d238-fd14-768f-a545-c884c6335909 | 01a1d23a-f785-766c-9bbe-34089cdd8526 | 21046 | 0.819825 × 0.949219 × 0.446289 | 24 | Photoreal vintage articulated desk lamp with brass arm and green enamel shade, entire base arm and shade visible with generous margins, cordless lamp with no cable. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people. |
+| mug | White enamel coffee mug | 01a1d131-d73a-7330-9596-516394606bb4 | 01a1d238-ffd2-7180-b85c-af51aa5a58e6 | 12633 | 0.953613 × 0.696289 × 0.736328 | 15 | Pre-existing; no prompt written here |
+| scissors | Vintage steel scissors slightly open lying flat | 01a1d238-feaf-702d-9fc8-9093abfab2cb | 01a1d23a-f62b-74d5-b4a8-251bb13fb07b | 12602 | 0.949219 × 0.047364 × 0.785156 | 24 | Photoreal pair of vintage steel film editing scissors lying flat, slightly open, two intact blades joined by a pivot and two oval metal finger loops, gently worn unmarked steel. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people. |
+| filmcan | Closed metal 35mm film can with blank masking tape | 01a1d238-ff34-7077-a3f2-171e4a5c1260 | 01a1d23a-f88a-757e-b48c-abb5b54146f7 | 12644 | 0.947754 × 0.333496 × 0.955566 | 24 | Photoreal round metal 35mm film can with its lid on and a single strip of blank cream masking tape on top, no writing, gently worn aluminium. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people. |
+| baron | Previously generated villain figurine | Pre-existing; not supplied | 01a1d131-b1be-77e9-be59-aa0102921dd7 | 12367 | 0.54541 × 0.950684 × 0.545898 | 0 | Pre-existing; no prompt written here |
+
+Props are <name>.png and <name>.glb in this folder; Baron is ../characters/baron.glb. validation.json contains byte sizes and transforms. final-tasks.json is the final task inventory (task-record.json is the intermediate checkpoint). Original rejected image IDs: reel 01a1d131-cd36-765e-b03f-e6e574f8b311; lamp 01a1d131-d21f-7437-b763-c2bcabfd24ab. Terms not yet checked.

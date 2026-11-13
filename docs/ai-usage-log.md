@@ -45,3 +45,7 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   first playable in C++: beat simulation, brute-force solver, ASCII level format, procedural set builder, custom Slate
   timeline UI, console commands for every action, a Python MCP dev toolset, base materials and the stage map via
   editor Python · all kept · first playable loop verified in PIE by Output Log and screenshots; no human code
+
+- 2026-11-13 · Codex / GPT-6 Astra (delegated by Claude Fable 5.2) + Meshy · finish nine props: replace reel/lamp images, create scissors/filmcan images, generate nine GLBs and download existing Baron · all kept; sizes, triangles and bounds checked; 171 credits spent (932 → 761), prior paid tasks excluded · time saving not measured
+
+- 2026-11-13 00:00–00:35 GMT · Claude Sonnet 5.5 subagent + fal · generate the full audio pack: 30 SFX cues and a projector loop (sonilo/v1.1/text-to-sound-effects) plus three instrumental music loops (elevenlabs/music/v2.5), trimmed, normalised and loop-crossfaded with ffmpeg, manifest in assets/src/audio/manifest.md · all kept, no regenerations; many SFX were trimmed to a length cap (generator tails ran longer than targets); est. spend about 2.06 USD of 12 USD; listening checks not done (measured only) · time saving not measured

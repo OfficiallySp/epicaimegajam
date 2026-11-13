@@ -12,9 +12,12 @@ struct FMJSolveReport
 	FString TheatricalOutcome;
 	TArray<int32> WinsByCost;      // number of distinct winning cuts per edit cost
 	TArray<int32> BonusWinsByCost; // ...that also meet the bonus objective
+	TArray<int32> DistinctByCost;  // winning cuts that read differently (identical clips are interchangeable)
 	int32 MinCost = -1;
 	int32 MinBonusCost = -1;
 	TArray<FString> Samples;
+	bool bHasBest = false;
+	FMJEditState Best;             // one cheapest winning cut (used by the in-game hint)
 };
 
 namespace MJ

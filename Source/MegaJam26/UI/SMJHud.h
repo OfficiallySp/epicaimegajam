@@ -68,11 +68,17 @@ private:
 	void PaintPanel(FMJPaint& P, const FLayout& L) const;
 	void PaintClip(FMJPaint& P, const FMJClip& C, int32 OwnerTrack, FVector2f Pos, FVector2f Size, bool bLocked, bool bSelected, bool bHover, float Alpha, bool bPlaying) const;
 	void PaintOverlays(FMJPaint& P, const FLayout& L) const;
+	void PaintTitle(FMJPaint& P, const FLayout& L) const;
+	void PaintCredits(FMJPaint& P, const FLayout& L) const;
+	void PaintMenu(FMJPaint& P, const FLayout& L) const;
+	void PaintStars(FMJPaint& P, FVector2f Center, float Radius, float Gap, int32 Mask, bool bHasBonus) const;
+	bool IsModal() const;
 	bool Button(FMJPaint& P, FName Id, FVector2f Pos, FVector2f Size, const FString& Label, const FLinearColor& Color, bool bEnabled, const FString& Key = FString()) const;
 
 	TWeakObjectPtr<AMJDirector> Director;
 
 	mutable TArray<FHot> Hots;
+	mutable bool bInMenuPaint = false;
 	FVector2f Mouse = FVector2f(-1000.f, -1000.f);
 	FName PressedHot;
 	EDrag Drag = EDrag::None;

@@ -387,14 +387,31 @@ void SMJHud::Click(FName Id)
 	AMJDirector* D = Director.Get();
 	if (!D) return;
 	static const FName Roll("roll"), Undo("undo"), Redo("redo"), Reset("reset"), Cut("cut"), Next("next"), Keep("keep");
+	static const FName Play("play"), Scenes("scenes"), Quit("quit"), Resume("resume"), Restart("restart"), Title("title"), Hint("hint"), MenuBtn("menu"), Full("full"), Fix("fix");
+	static const FName MusicDn("music-"), MusicUp("music+"), SfxDn("sfx-"), SfxUp("sfx+");
+	const FString Text = Id.ToString();
+	D->Sfx(TEXT("click"));
 	if (Id == Roll) D->Roll();
 	else if (Id == Undo) D->Undo();
 	else if (Id == Redo) D->Redo();
 	else if (Id == Reset) D->ResetEdits();
 	else if (Id == Cut) CutSelection();
 	else if (Id == Next) D->NextLevel();
-	else if (Id == Keep) D->BackToEdit();
-	D->Sfx(TEXT("click"));
+	else if (Id == Keep || Id == Fix) D->BackToEdit();
+	else if (Id == Hint) D->Hint();
+	else if (Id == Play) D->StartGame();
+	else if (Id == Scenes) D->OpenMenu(EMJMenu::Scenes);
+	else if (Id == MenuBtn) D->OpenMenu(EMJMenu::Pause);
+	else if (Id == Resume) D->CloseMenu();
+	else if (Id == Restart) { D->CloseMenu(); D->PlayLevel(D->LevelIndex); }
+	else if (Id == Title) D->GoTitle();
+	else if (Id == Quit) D->QuitGame();
+	else if (Id == Full) D->ToggleFullscreen();
+	else if (Id == MusicDn) D->AdjustVolume(true, -0.1f);
+	else if (Id == MusicUp) D->AdjustVolume(true, 0.1f);
+	else if (Id == SfxDn) D->AdjustVolume(false, -0.1f);
+	else if (Id == SfxUp) D->AdjustVolume(false, 0.1f);
+	else if (Text.StartsWith(TEXT("scene_"))) D->PlayLevel(FCString::Atoi(*Text.Mid(6)));
 }
 
 FReply SMJHud::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
@@ -410,7 +427,7 @@ FReply SMJHud::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEven
 	PressedHot = HotAt(P);
 
 	FReply Reply = FReply::Handled().SetUserFocus(AsShared(), EFocusCause::Mouse).CaptureMouse(AsShared());
-	if (!PressedHot.IsNone()) return Reply;
+	if (!PressedHot.IsNone() || IsModal()) return Reply;
 
 	if (D->Phase == EMJPhase::Failed) { D->BackToEdit(); return Reply; }
 	if (D->Phase != EMJPhase::Edit) return Reply;
@@ -508,7 +525,7 @@ FReply SMJHud::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent&
 FReply SMJHud::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	AMJDirector* D = Director.Get();
-	if (D && D->Phase == EMJPhase::Edit && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	if (D && D->Phase == EMJPhase::Edit && !IsModal() && HotAt(ToVirtual(MyGeometry, MouseEvent)).IsNone() && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		const FLayout L = ComputeLayout(MyGeometry);
 		int32 T, I;
@@ -529,12 +546,24 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 	const FKey K = KeyEvent.GetKey();
 	const bool bGo = K == EKeys::SpaceBar || K == EKeys::Enter;
 
+	if (K == EKeys::F11 && !KeyEvent.IsRepeat()) { D->ToggleFullscreen(); return FReply::Handled(); }
+	if (D->Menu != EMJMenu::None)
+	{
+		if (K == EKeys::Escape && !KeyEvent.IsRepeat()) { D->CloseMenu(); return FReply::Handled(); }
+		return FReply::Unhandled();
+	}
 	if (K == EKeys::F) { D->bFast = true; return FReply::Handled(); }
-	if (K == EKeys::PageDown && !KeyEvent.IsRepeat()) { D->NextLevel(); return FReply::Handled(); }
+	if (K == EKeys::PageDown && !KeyEvent.IsRepeat()) { D->LoadLevel(FMath::Min(D->LevelIndex + 1, D->NumLevels() - 1)); return FReply::Handled(); }
 	if (K == EKeys::PageUp && !KeyEvent.IsRepeat()) { D->LoadLevel(D->LevelIndex - 1); return FReply::Handled(); }
 
 	switch (D->Phase)
 	{
+	case EMJPhase::Title:
+		if (bGo && !KeyEvent.IsRepeat()) { D->StartGame(); return FReply::Handled(); }
+		break;
+	case EMJPhase::Credits:
+		if ((bGo || K == EKeys::Escape) && !KeyEvent.IsRepeat()) { D->GoTitle(); return FReply::Handled(); }
+		break;
 	case EMJPhase::Edit:
 		if (bGo && !KeyEvent.IsRepeat()) D->Roll();
 		else if (K == EKeys::X || K == EKeys::Delete || K == EKeys::BackSpace) CutSelection();
@@ -543,7 +572,8 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 		else if (K == EKeys::R && !KeyEvent.IsRepeat()) D->ResetEdits();
 		else if (K == EKeys::Left) D->StepBeat(-1);
 		else if (K == EKeys::Right) D->StepBeat(1);
-		else if (K == EKeys::Escape) D->SelUid = -1;
+		else if (K == EKeys::H && !KeyEvent.IsRepeat()) D->Hint();
+		else if (K == EKeys::Escape && !KeyEvent.IsRepeat()) { if (D->SelUid >= 0) D->SelUid = -1; else D->OpenMenu(EMJMenu::Pause); }
 		else return FReply::Unhandled();
 		return FReply::Handled();
 	case EMJPhase::Screening:
@@ -589,7 +619,9 @@ bool SMJHud::Button(FMJPaint& P, FName Id, FVector2f Pos, FVector2f Size, const 
 {
 	FHot H; H.Id = Id; H.Pos = Pos; H.Size = Size; H.bEnabled = bEnabled;
 	Hots.Add(H);
-	const bool bHover = bEnabled && Mouse.X >= Pos.X && Mouse.Y >= Pos.Y && Mouse.X <= Pos.X + Size.X && Mouse.Y <= Pos.Y + Size.Y;
+	const AMJDirector* Dir = Director.Get();
+	const bool bCovered = Dir && Dir->Menu != EMJMenu::None && !bInMenuPaint; // a menu is drawn over this button
+	const bool bHover = bEnabled && !bCovered && Mouse.X >= Pos.X && Mouse.Y >= Pos.Y && Mouse.X <= Pos.X + Size.X && Mouse.Y <= Pos.Y + Size.Y;
 	const bool bDown = bHover && PressedHot == Id;
 	const FLinearColor Fill = !bEnabled ? Hex(0x23262E) : (bDown ? Shade(Color, 0.75f) : (bHover ? Shade(Color, 1.15f) : Color));
 	const FVector2f Off(0.f, bDown ? 2.f : 0.f);
@@ -676,7 +708,7 @@ void SMJHud::PaintTopBar(FMJPaint& P, const FLayout& L) const
 		P.Box(FVector2f(0.f, 0.f), FVector2f(L.W, 74.f * K), Hex(0x000000));
 		P.Box(FVector2f(0.f, L.PanelY - 26.f * K), FVector2f(L.W, 26.f * K), Hex(0x000000));
 		if (FMath::Fmod(D->PhaseTime, 1.0f) < 0.6f) P.Box(FVector2f(34.f, 28.f), FVector2f(18.f, 18.f), ColRed, 9.f);
-		P.Text(TEXT("SCREENING"), FVector2f(64.f, 37.f), P.Font(18.f), ColText, 0.f, 0.5f);
+		P.Text(D->bIntro ? TEXT("THE THEATRICAL CUT") : TEXT("SCREENING YOUR CUT"), FVector2f(64.f, 37.f), P.Font(18.f), D->bIntro ? ColAmber : ColText, 0.f, 0.5f);
 		const float Secs = D->PlayTime / FMath::Max(0.1f, D->BeatsPerSecond);
 		const int32 Frames = FMath::FloorToInt(Secs * 24.f);
 		P.Text(FString::Printf(TEXT("%02d:%02d:%02d"), Frames / 1440, (Frames / 24) % 60, Frames % 24), FVector2f(L.W - 34.f, 37.f), P.Font(20.f, TEXT("Mono")), ColText, 1.f, 0.5f);
@@ -746,6 +778,9 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 	Button(P, TEXT("reset"), FVector2f(BX, BY), FVector2f(170.f, BH), TEXT("THEATRICAL CUT"), Hex(0x343946), bEdit && D->Cost() > 0, TEXT("R  -  RESET"));
 	BX += 190.f;
 
+	Button(P, TEXT("menu"), FVector2f(L.W - 24.f - 110.f, BY), FVector2f(110.f, BH), TEXT("MENU"), Hex(0x343946), D->Phase != EMJPhase::Printed, TEXT("ESC"));
+	Button(P, TEXT("hint"), FVector2f(L.W - 24.f - 110.f - 12.f - 110.f, BY), FVector2f(110.f, BH), TEXT("HINT"), Hex(0x2B5F8A), bEdit, TEXT("H"));
+
 	if (D->ToastTime > 0.f && !D->Toast.IsEmpty())
 	{
 		const float A = FMath::Clamp(D->ToastTime / 0.4f, 0.f, 1.f);
@@ -805,6 +840,11 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 			const bool bDragged = Drag == EDrag::Clip && bDragMoved && Clips[i].Uid == DragUid;
 			const bool bLocked = A.bLocked || Clips[i].bLocked;
 			PaintClip(P, Clips[i], t, Pos, Size, bLocked, Clips[i].Uid == D->SelUid && !bDragged, t == HoverT && i == HoverI, bDragged ? 0.25f : 1.f, i == PlayingClip);
+			if (D->HintTime > 0.f && Clips[i].Uid == D->HintUid)
+			{
+				const float Pulse = 0.55f + 0.45f * FMath::Sin((float)FPlatformTime::Seconds() * 7.f);
+				P.Frame(Pos - FVector2f(5.f, 5.f), Size + FVector2f(10.f, 10.f), Fade(Hex(0x5CC8FF), Pulse), 12.f, 4.f);
+			}
 		}
 	}
 
@@ -844,6 +884,11 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 			const bool bDragged = Drag == EDrag::Bin && bDragMoved && D->Edit.Bin[i].Clip.Uid == DragUid;
 			const FVector2f CS(FMath::Min(Size.X - 96.f, 120.f), Size.Y);
 			PaintClip(P, D->Edit.Bin[i].Clip, D->Edit.Bin[i].Actor, Pos, CS, false, false, i == HoverB, bDragged ? 0.25f : 1.f, false);
+			if (D->HintTime > 0.f && D->Edit.Bin[i].Clip.Uid == D->HintUid)
+			{
+				const float Pulse = 0.55f + 0.45f * FMath::Sin((float)FPlatformTime::Seconds() * 7.f);
+				P.Frame(Pos - FVector2f(5.f, 5.f), CS + FVector2f(10.f, 10.f), Fade(Hex(0x5CC8FF), Pulse), 12.f, 4.f);
+			}
 			const FMJActorDef& Owner = Lv.Actors[D->Edit.Bin[i].Actor];
 			P.Text(TEXT("for"), FVector2f(Pos.X + CS.X + 10.f, Pos.Y + 11.f), P.Font(10.f, TEXT("Regular")), ColDim, 0.f, 0.5f);
 			P.Text(Owner.Name, FVector2f(Pos.X + CS.X + 10.f, Pos.Y + 27.f), P.Font(13.f), RoleColor(Owner.Role), 0.f, 0.5f);
@@ -899,6 +944,18 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		P.Text(Lv.Note, Pos + FVector2f(126.f, 20.f), F, ColText, 0.f, 0.5f);
 	}
 
+	if (D->Phase == EMJPhase::Edit && D->HintTime > 0.f && !D->HintText.IsEmpty())
+	{
+		const float A = FMath::Clamp(D->HintTime / 0.5f, 0.f, 1.f);
+		const FSlateFontInfo F = P.Font(19.f);
+		const float TW = P.Measure(D->HintText, F).X;
+		const FVector2f Size(TW + 110.f, 44.f), Pos(L.W - 24.f - Size.X, L.PanelY - 60.f);
+		P.Box(Pos, Size, Hex(0x0B1622, 0.94f * A), 8.f);
+		P.Box(Pos, FVector2f(6.f, Size.Y), Fade(Hex(0x5CC8FF), A), 3.f);
+		P.Text(TEXT("HINT"), Pos + FVector2f(18.f, 22.f), P.Font(13.f), Fade(Hex(0x5CC8FF), A), 0.f, 0.5f);
+		P.Text(D->HintText, Pos + FVector2f(78.f, 22.f), F, Fade(ColText, A), 0.f, 0.5f);
+	}
+
 	if (D->Phase == EMJPhase::Failed)
 	{
 		const float K = FMath::Clamp(D->PhaseTime / 0.18f, 0.f, 1.f);
@@ -913,7 +970,16 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		const float WW = P.Measure(Why, WF).X + 56.f;
 		P.Box(Mid + FVector2f(-WW * 0.5f, 92.f), FVector2f(WW, 52.f), Hex(0x0B0C10, 0.92f * K), 10.f);
 		P.Text(Why, Mid + FVector2f(0.f, 118.f), WF, Fade(ColText, K), 0.5f, 0.5f);
-		P.Text(TEXT("Click or press SPACE to get back to the cutting room"), Mid + FVector2f(0.f, 170.f), P.Font(16.f, TEXT("Regular")), Fade(ColDim, K), 0.5f, 0.5f);
+		if (D->bIntro)
+		{
+			P.Text(TEXT("THAT WAS THE STUDIO'S THEATRICAL CUT"), Mid + FVector2f(0.f, -150.f), P.Font(18.f), Fade(ColAmber, K), 0.5f, 0.5f);
+			Button(P, TEXT("fix"), Mid + FVector2f(-150.f, 162.f), FVector2f(300.f, 56.f), TEXT("FIX IT IN POST"), ColAmber, true, TEXT("SPACE"));
+		}
+		else
+		{
+			const TCHAR* Tip = D->FailCount >= 2 ? TEXT("Click or press SPACE to keep editing.   Stuck? Press H for a hint.") : TEXT("Click or press SPACE to get back to the cutting room");
+			P.Text(Tip, Mid + FVector2f(0.f, 170.f), P.Font(16.f, TEXT("Regular")), Fade(D->FailCount >= 2 ? ColText : ColDim, K), 0.5f, 0.5f);
+		}
 	}
 	else if (D->Phase == EMJPhase::Printed)
 	{
@@ -941,7 +1007,7 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 			P.Text(Labels[i], C + FVector2f(0.f, 66.f), P.Font(16.f, TEXT("Regular")), Fade(Got[i] ? ColText : ColDim, K), 0.5f, 0.5f);
 		}
 		const bool bLast = !D->HasNextLevel();
-		Button(P, TEXT("next"), Mid + FVector2f(-250.f, 128.f), FVector2f(280.f, 56.f), bLast ? TEXT("BACK TO SCENE 1") : TEXT("NEXT SCENE"), ColAmber, true, TEXT("SPACE"));
+		Button(P, TEXT("next"), Mid + FVector2f(-250.f, 128.f), FVector2f(280.f, 56.f), bLast ? TEXT("ROLL CREDITS") : TEXT("NEXT SCENE"), ColAmber, true, TEXT("SPACE"));
 		Button(P, TEXT("keep"), Mid + FVector2f(50.f, 128.f), FVector2f(200.f, 56.f), TEXT("KEEP EDITING"), Hex(0x343946), true, TEXT("ESC"));
 	}
 }
@@ -954,9 +1020,180 @@ int32 SMJHud::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry,
 
 	const FLayout L = ComputeLayout(AllottedGeometry);
 	FMJPaint P{ AllottedGeometry, OutDrawElements, LayerId + 1, L.S };
-	PaintTopBar(P, L);
-	PaintPanel(P, L);
-	++P.Layer;
-	PaintOverlays(P, L);
+	if (D->Phase == EMJPhase::Title) PaintTitle(P, L);
+	else if (D->Phase == EMJPhase::Credits) PaintCredits(P, L);
+	else
+	{
+		PaintTopBar(P, L);
+		PaintPanel(P, L);
+		++P.Layer;
+		PaintOverlays(P, L);
+	}
+	if (D->Menu != EMJMenu::None)
+	{
+		// buttons drawn underneath a menu must not take clicks
+		for (FHot& H : Hots) H.bEnabled = false;
+		++P.Layer;
+		bInMenuPaint = true;
+		PaintMenu(P, L);
+		bInMenuPaint = false;
+	}
 	return P.Layer + 1;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// title, menus, credits
+
+bool SMJHud::IsModal() const
+{
+	const AMJDirector* D = Director.Get();
+	return D && (D->Menu != EMJMenu::None || D->Phase == EMJPhase::Title || D->Phase == EMJPhase::Credits);
+}
+
+void SMJHud::PaintStars(FMJPaint& P, FVector2f Center, float Radius, float Gap, int32 Mask, bool bHasBonus) const
+{
+	const int32 Count = bHasBonus ? 3 : 2;
+	for (int32 i = 0; i < Count; ++i)
+	{
+		const FVector2f C = Center + FVector2f((i - (Count - 1) * 0.5f) * Gap, 0.f);
+		P.Star(C, Radius, (Mask & (1 << i)) ? ColAmber : Hex(0x343946));
+	}
+}
+
+void SMJHud::PaintTitle(FMJPaint& P, const FLayout& L) const
+{
+	const AMJDirector* D = Director.Get();
+	const float K = FMath::Clamp(D->PhaseTime / 0.6f, 0.f, 1.f);
+
+	// a dark band down the left so the title reads over the desk
+	TArray<FSlateGradientStop> Stops;
+	Stops.Add(FSlateGradientStop(FVector2f(0.f, 0.f), Hex(0x05060A, 0.94f)));
+	Stops.Add(FSlateGradientStop(FVector2f(780.f * L.S, 0.f), Hex(0x05060A, 0.80f)));
+	Stops.Add(FSlateGradientStop(FVector2f(1250.f * L.S, 0.f), Hex(0x05060A, 0.f)));
+	FSlateDrawElement::MakeGradient(P.Out, P.Layer, P.Geo(FVector2f(0.f, 0.f), FVector2f(1250.f, 1080.f)), Stops, Orient_Vertical);
+
+	const float X = 96.f;
+	P.Text(TEXT("A DIRECTOR'S CUT PUZZLE"), FVector2f(X + 4.f, 200.f), P.Font(20.f), Fade(ColAmber, K));
+	P.Text(TEXT("FIX IT"), FVector2f(X, 226.f), P.Font(150.f, TEXT("Black")), Fade(ColText, K));
+	P.Text(TEXT("IN POST"), FVector2f(X, 372.f), P.Font(150.f, TEXT("Black")), Fade(ColAmber, K));
+	// a strip of film under the title
+	P.Box(FVector2f(X, 548.f), FVector2f(640.f, 30.f), Hex(0x000000, K));
+	for (float SX = X + 8.f; SX < X + 628.f; SX += 22.f) P.Box(FVector2f(SX, 557.f), FVector2f(11.f, 12.f), Fade(ColPaper, 0.85f * K), 2.f);
+
+	const FSlateFontInfo Body = P.Font(21.f, TEXT("Regular"));
+	P.Text(TEXT("The studio butchered your spy movie."), FVector2f(X + 4.f, 604.f), Body, Fade(ColText, K));
+	P.Text(TEXT("Sneak into the cutting room and recut it before the premiere."), FVector2f(X + 4.f, 634.f), Body, Fade(ColText, K));
+
+	const bool bStarted = D->TotalStars() > 0;
+	Button(P, TEXT("play"), FVector2f(X, 708.f), FVector2f(360.f, 68.f), bStarted ? TEXT("CONTINUE") : TEXT("START THE CUT"), ColAmber, true, TEXT("SPACE"));
+	Button(P, TEXT("scenes"), FVector2f(X, 792.f), FVector2f(360.f, 52.f), TEXT("SCENES"), Hex(0x343946), true);
+	Button(P, TEXT("full"), FVector2f(X, 856.f), FVector2f(174.f, 52.f), TEXT("FULLSCREEN"), Hex(0x343946), true, TEXT("F11"));
+	Button(P, TEXT("quit"), FVector2f(X + 186.f, 856.f), FVector2f(174.f, 52.f), TEXT("QUIT"), Hex(0x343946), true);
+
+	P.Star(FVector2f(X + 400.f + 16.f, 742.f), 15.f, ColAmber);
+	P.Text(FString::Printf(TEXT("%d / %d"), D->TotalStars(), D->MaxStars()), FVector2f(X + 440.f, 742.f), P.Font(24.f), ColText, 0.f, 0.5f);
+
+	P.Text(TEXT("Made for the 2026 Epic AI MegaJam.  Theme: Director's Cut."), FVector2f(X + 4.f, 1010.f), P.Font(14.f, TEXT("Regular")), ColDim);
+	P.Text(TEXT("Mouse to edit.  SPACE rolls film."), FVector2f(X + 4.f, 1032.f), P.Font(14.f, TEXT("Regular")), ColDim);
+}
+
+void SMJHud::PaintCredits(FMJPaint& P, const FLayout& L) const
+{
+	const AMJDirector* D = Director.Get();
+	const float K = FMath::Clamp(D->PhaseTime / 0.5f, 0.f, 1.f);
+	P.Box(FVector2f(0.f, 0.f), FVector2f(L.W, 1080.f), Hex(0x05060A, 0.80f * K));
+	const FVector2f Mid(L.W * 0.5f, 0.f);
+	const FSlateFontInfo F = P.Font(110.f, TEXT("Black"));
+	const FVector2f Sz = P.Measure(TEXT("THAT'S A WRAP"), F);
+	P.FrameRot(Mid + FVector2f(0.f, 220.f), Sz + FVector2f(80.f, 16.f), Fade(ColAmber, K), 14.f, 8.f, -3.f);
+	P.TextRot(TEXT("THAT'S A WRAP"), Mid + FVector2f(0.f, 220.f), F, Fade(ColAmber, K), -3.f);
+	P.Text(TEXT("The director's cut is in the can. The studio never has to know."), Mid + FVector2f(0.f, 340.f), P.Font(26.f, TEXT("Regular")), Fade(ColText, K), 0.5f, 0.5f);
+
+	P.Star(Mid + FVector2f(-70.f, 420.f), 26.f, ColAmber);
+	P.Text(FString::Printf(TEXT("%d / %d"), D->TotalStars(), D->MaxStars()), Mid + FVector2f(-30.f, 420.f), P.Font(40.f), ColText, 0.f, 0.5f);
+	if (D->TotalStars() < D->MaxStars()) P.Text(TEXT("Every scene has a par and most have a studio note. Recut them from SCENES."), Mid + FVector2f(0.f, 474.f), P.Font(17.f, TEXT("Regular")), ColDim, 0.5f, 0.5f);
+
+	static const TCHAR* Lines[] = {
+		TEXT("FIX IT IN POST"),
+		TEXT("Directed by Shane"),
+		TEXT("Design, code, levels and edit: Claude (Anthropic), working in Unreal Engine 5.8 through Unreal MCP"),
+		TEXT("Figurines and props: generated with Meshy      Audio: generated with fal"),
+		TEXT("No actors were harmed. Several were cut."),
+	};
+	float Y = 560.f;
+	for (int32 i = 0; i < UE_ARRAY_COUNT(Lines); ++i)
+	{
+		P.Text(Lines[i], Mid + FVector2f(0.f, Y), P.Font(i == 0 ? 24.f : 18.f, i == 0 ? TEXT("Bold") : TEXT("Regular")), Fade(i == 0 ? ColAmber : ColText, K), 0.5f, 0.5f);
+		Y += i == 0 ? 46.f : 34.f;
+	}
+	Button(P, TEXT("title"), Mid + FVector2f(-300.f, 800.f), FVector2f(290.f, 60.f), TEXT("MAIN MENU"), ColAmber, true, TEXT("SPACE"));
+	Button(P, TEXT("scenes"), Mid + FVector2f(10.f, 800.f), FVector2f(290.f, 60.f), TEXT("SCENES"), Hex(0x343946), true);
+}
+
+void SMJHud::PaintMenu(FMJPaint& P, const FLayout& L) const
+{
+	const AMJDirector* D = Director.Get();
+	P.Box(FVector2f(0.f, 0.f), FVector2f(L.W, 1080.f), Hex(0x05060A, 0.78f));
+	const FVector2f Mid(L.W * 0.5f, 540.f);
+
+	if (D->Menu == EMJMenu::Pause)
+	{
+		const FVector2f Size(520.f, 640.f), Pos = Mid - Size * 0.5f;
+		P.Box(Pos + FVector2f(0.f, 8.f), Size, Hex(0x000000, 0.5f), 16.f);
+		P.Box(Pos, Size, Hex(0x14171F), 16.f);
+		P.Box(Pos, FVector2f(Size.X, 6.f), ColAmber, 3.f);
+		P.Text(TEXT("PAUSED"), Pos + FVector2f(Size.X * 0.5f, 52.f), P.Font(38.f, TEXT("Black")), ColText, 0.5f, 0.5f);
+
+		const float BX = Pos.X + 60.f, BW = Size.X - 120.f;
+		float Y = Pos.Y + 100.f;
+		Button(P, TEXT("resume"), FVector2f(BX, Y), FVector2f(BW, 58.f), TEXT("BACK TO THE CUTTING ROOM"), ColAmber, true, TEXT("ESC")); Y += 72.f;
+		Button(P, TEXT("restart"), FVector2f(BX, Y), FVector2f(BW, 50.f), TEXT("REWATCH THE THEATRICAL CUT"), Hex(0x343946), D->Phase != EMJPhase::Title); Y += 62.f;
+		Button(P, TEXT("scenes"), FVector2f(BX, Y), FVector2f(BW, 50.f), TEXT("SCENES"), Hex(0x343946), true); Y += 62.f;
+		Button(P, TEXT("title"), FVector2f(BX, Y), FVector2f(BW, 50.f), TEXT("MAIN MENU"), Hex(0x343946), true); Y += 78.f;
+
+		for (int32 Row = 0; Row < 2; ++Row)
+		{
+			const bool bMusic = Row == 0;
+			const float V = D->Save ? (bMusic ? D->Save->MusicVolume : D->Save->SfxVolume) : 0.f;
+			P.Text(bMusic ? TEXT("MUSIC") : TEXT("SOUND"), FVector2f(BX, Y + 20.f), P.Font(16.f), ColDim, 0.f, 0.5f);
+			Button(P, bMusic ? TEXT("music-") : TEXT("sfx-"), FVector2f(BX + 96.f, Y), FVector2f(40.f, 40.f), TEXT("-"), Hex(0x343946), V > 0.01f);
+			for (int32 i = 0; i < 10; ++i) P.Box(FVector2f(BX + 146.f + i * 19.f, Y + 8.f), FVector2f(14.f, 24.f), (i + 0.5f) / 10.f < V ? ColAmber : Hex(0x2A2D36), 3.f);
+			Button(P, bMusic ? TEXT("music+") : TEXT("sfx+"), FVector2f(BX + 346.f, Y), FVector2f(40.f, 40.f), TEXT("+"), Hex(0x343946), V < 0.99f);
+			Y += 52.f;
+		}
+		Y += 10.f;
+		Button(P, TEXT("full"), FVector2f(BX, Y), FVector2f(BW * 0.5f - 6.f, 46.f), TEXT("FULLSCREEN"), Hex(0x343946), true, TEXT("F11"));
+		Button(P, TEXT("quit"), FVector2f(BX + BW * 0.5f + 6.f, Y), FVector2f(BW * 0.5f - 6.f, 46.f), TEXT("QUIT GAME"), Hex(0x5A2A2A), true);
+		return;
+	}
+
+	// ---- scene select: one column per reel
+	static const TCHAR* ReelNames[3] = { TEXT("REEL 1   THE HEIST"), TEXT("REEL 2   THE GETAWAY"), TEXT("REEL 3   THE SHOWDOWN") };
+	const TArray<FMJLevelDef>& All = MJ::Levels();
+	P.Text(TEXT("SCENES"), FVector2f(Mid.X, 86.f), P.Font(54.f, TEXT("Black")), ColText, 0.5f, 0.5f);
+	P.Star(FVector2f(Mid.X - 60.f, 146.f), 13.f, ColAmber);
+	P.Text(FString::Printf(TEXT("%d / %d"), D->TotalStars(), D->MaxStars()), FVector2f(Mid.X - 36.f, 146.f), P.Font(22.f), ColText, 0.f, 0.5f);
+
+	const float ColW = FMath::Min(430.f, (L.W - 120.f) / 3.f), CardW = ColW - 24.f, X0 = Mid.X - ColW * 1.5f;
+	int32 RowInReel[3] = { 0, 0, 0 };
+	for (int32 r = 0; r < 3; ++r) P.Text(ReelNames[r], FVector2f(X0 + r * ColW + 12.f, 200.f), P.Font(17.f), ColAmber);
+	for (int32 i = 0; i < All.Num(); ++i)
+	{
+		const FMJLevelDef& Lv = All[i];
+		const int32 r = FMath::Clamp(Lv.Reel - 1, 0, 2);
+		const FVector2f Pos(X0 + r * ColW + 12.f, 234.f + RowInReel[r]++ * 92.f), Size(CardW, 80.f);
+		const int32 Mask = D->StarMask(Lv.Id);
+		const bool bHover = Mouse.X >= Pos.X && Mouse.Y >= Pos.Y && Mouse.X <= Pos.X + Size.X && Mouse.Y <= Pos.Y + Size.Y;
+		FHot H; H.Id = FName(*FString::Printf(TEXT("scene_%d"), i)); H.Pos = Pos; H.Size = Size; H.bEnabled = true;
+		Hots.Add(H);
+		P.Box(Pos + FVector2f(0.f, 4.f), Size, Hex(0x000000, 0.45f), 10.f);
+		P.Box(Pos, Size, bHover ? Hex(0x2A2F3C) : Hex(0x1A1D25), 10.f);
+		if (i == D->LevelIndex && D->Phase != EMJPhase::Title) P.Frame(Pos, Size, ColAmber, 10.f, 2.f);
+		P.Box(Pos, FVector2f(7.f, Size.Y), (Mask & 1) ? ColGreen : Hex(0x343946), 3.f);
+		P.Text(FString::Printf(TEXT("SCENE %d"), i + 1), Pos + FVector2f(22.f, 20.f), P.Font(12.f), ColDim, 0.f, 0.5f);
+		P.Text(Lv.Title.ToUpper(), Pos + FVector2f(22.f, 48.f), P.Font(22.f), ColText, 0.f, 0.5f);
+		PaintStars(P, Pos + FVector2f(Size.X - 62.f, 40.f), 13.f, 32.f, Mask, Lv.Bonus != EMJBonus::None);
+	}
+	if (RowInReel[2] == 0) P.Text(TEXT("still in the edit..."), FVector2f(X0 + 2 * ColW + 12.f, 250.f), P.Font(16.f, TEXT("Italic")), ColDim);
+	Button(P, TEXT("resume"), FVector2f(Mid.X - 150.f, 990.f), FVector2f(300.f, 54.f), TEXT("BACK"), Hex(0x343946), true, TEXT("ESC"));
 }

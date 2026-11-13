@@ -1,0 +1,1 @@
+{"input_task_id":"01a1d131-c85f-7184-9da8-72bd45313bbf","ai_model":"meshy-t2.5","model_type":"smart-topology","target_polycount":20000,"texture_model":"meshy-7","enable_pbr":true,"target_formats":["glb"],"origin_at":"bottom","response_format":"json"}

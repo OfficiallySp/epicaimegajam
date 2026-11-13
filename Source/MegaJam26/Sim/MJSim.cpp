@@ -82,7 +82,7 @@ namespace MJ
 		Out.Reset();
 		const FMJActorDef& D = L.Actors[Actor];
 		const FMJActorState& A = S.Actors[Actor];
-		if (A.Status != EMJStatus::Active || (D.Role != EMJRole::Guard && D.Role != EMJRole::Camera)) return;
+		if (A.Status != EMJStatus::Active || (D.Role != EMJRole::Guard && D.Role != EMJRole::Camera && D.Role != EMJRole::Villain)) return;
 		const FIntPoint V = MJDirVec(A.Facing);
 		FIntPoint P = A.Pos;
 		for (int32 i = 0; i < D.Sight; ++i)

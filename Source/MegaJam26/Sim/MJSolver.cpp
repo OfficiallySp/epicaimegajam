@@ -28,6 +28,8 @@ namespace MJ
 		Out = FMJSolveReport();
 		Out.WinsByCost.SetNumZeroed(MaxEdits + 1);
 		Out.BonusWinsByCost.SetNumZeroed(MaxEdits + 1);
+		Out.DistinctByCost.SetNumZeroed(MaxEdits + 1);
+		TSet<FString> Distinct;
 
 		FMJEditState Init;
 		InitEdit(InLevel, Init);
@@ -50,6 +52,7 @@ namespace MJ
 				if (R.IsWin() && Cost <= MaxEdits)
 				{
 					++Out.WinsByCost[Cost];
+					if (!Out.bHasBest) { Out.Best = E; Out.bHasBest = true; } // breadth-first, so the first win is a cheapest one
 					if (Out.MinCost < 0 || Cost < Out.MinCost) Out.MinCost = Cost;
 					const bool bBonus = BonusMet(InLevel, E, R);
 					if (bBonus)
@@ -57,7 +60,15 @@ namespace MJ
 						++Out.BonusWinsByCost[Cost];
 						if (Out.MinBonusCost < 0 || Cost < Out.MinBonusCost) Out.MinBonusCost = Cost;
 					}
-					if (Out.Samples.Num() < 6) Out.Samples.Add(FString::Printf(TEXT("cost %d, %d beats%s: %s"), Cost, R.EndBeat, bBonus ? TEXT(", bonus") : TEXT(""), *DescribeTracks(InLevel, E)));
+					// identical clips are interchangeable, so count cuts that read differently, not uid permutations
+					const FString Desc = DescribeTracks(InLevel, E);
+					bool bSeenDesc = false;
+					Distinct.Add(Desc, &bSeenDesc);
+					if (!bSeenDesc)
+					{
+						++Out.DistinctByCost[Cost];
+						if (Out.Samples.Num() < 8) Out.Samples.Add(FString::Printf(TEXT("cost %d, %d beats%s: %s"), Cost, R.EndBeat, bBonus ? TEXT(", bonus") : TEXT(""), *Desc));
+					}
 				}
 				if (Depth == MaxEdits) continue;
 
@@ -123,7 +134,7 @@ namespace MJ
 	{
 		FString S = FString::Printf(TEXT("[%s] %-22s theatrical=%s@%d (%s) | states=%d%s | wins by cost:"),
 			*L.Id, *L.Title, R.bTheatricalWins ? TEXT("WIN(!)") : TEXT("fail"), R.TheatricalEnd, *R.TheatricalOutcome, R.States, R.bTruncated ? TEXT(" TRUNCATED") : TEXT(""));
-		for (int32 c = 0; c < R.WinsByCost.Num(); ++c) S += FString::Printf(TEXT(" %d:%d"), c, R.WinsByCost[c]);
+		for (int32 c = 0; c < R.DistinctByCost.Num(); ++c) S += FString::Printf(TEXT(" %d:%d"), c, R.DistinctByCost[c]);
 		S += FString::Printf(TEXT(" | min=%d par=%d max=%d"), R.MinCost, L.Par, L.MaxEdits);
 		if (L.Bonus != EMJBonus::None)
 		{

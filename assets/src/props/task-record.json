@@ -1,0 +1,28 @@
+{
+  "ids": {
+    "camera": "01a1d131-b9c4-73e0-a888-6261a9fec3a6",
+    "car": "01a1d131-be95-7388-8ce6-8f013b89f181",
+    "diamond": "01a1d131-c38a-77bf-a077-7c822994f105",
+    "clapper": "01a1d131-c85f-7184-9da8-72bd45313bbf",
+    "reel": "01a1d238-ffb0-71fb-8aca-79a51875e15a",
+    "lamp": "01a1d238-fd14-768f-a545-c884c6335909",
+    "mug": "01a1d131-d73a-7330-9596-516394606bb4",
+    "scissors": "01a1d238-feaf-702d-9fc8-9093abfab2cb",
+    "filmcan": "01a1d238-ff34-7077-a3f2-171e4a5c1260"
+  },
+  "models": {
+    "baron": "01a1d131-b1be-77e9-be59-aa0102921dd7",
+    "camera": "01a1d238-fef2-76db-adcd-9e2df65c4127",
+    "car": "01a1d239-0036-70f0-927c-cbe21f8c4029",
+    "diamond": "01a1d238-fd18-70a4-8844-c4691516db0c",
+    "clapper": "01a1d238-fd1b-7730-8408-ef8a41422f3e",
+    "mug": "01a1d238-ffd2-7180-b85c-af51aa5a58e6"
+  },
+  "prompts": {
+    "reel": "Photoreal vintage aluminium 35mm film reel lying flat, film tightly wound entirely inside the reel, no loose strip, plain unmarked metal, no engraving or lettering. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people.",
+    "lamp": "Photoreal vintage articulated desk lamp with brass arm and green enamel shade, entire base arm and shade visible with generous margins, cordless lamp with no cable. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people.",
+    "scissors": "Photoreal pair of vintage steel film editing scissors lying flat, slightly open, two intact blades joined by a pivot and two oval metal finger loops, gently worn unmarked steel. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people.",
+    "filmcan": "Photoreal round metal 35mm film can with its lid on and a single strip of blank cream masking tape on top, no writing, gently worn aluminium. Single object, centered, three-quarter view, plain light grey studio background, soft even lighting, no text, no people."
+  },
+  "balanceBefore": 932
+}

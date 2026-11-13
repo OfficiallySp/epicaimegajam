@@ -215,6 +215,7 @@ void AMJStage::BuildFigure(const FMJActorDef& D, FMJFigure& Out)
 	case EMJRole::Star: Body = FLinearColor(0.92f, 0.9f, 0.84f); Accent = FLinearColor(1.0f, 0.72f, 0.1f); Base = FLinearColor(0.75f, 0.52f, 0.08f); break;
 	case EMJRole::Ally: Body = FLinearColor(0.1f, 0.55f, 0.6f); Accent = FLinearColor(0.95f, 0.85f, 0.7f); Base = FLinearColor(0.05f, 0.3f, 0.34f); break;
 	case EMJRole::Guard: Body = FLinearColor(0.12f, 0.14f, 0.32f); Accent = FLinearColor(0.85f, 0.2f, 0.15f); Base = FLinearColor(0.35f, 0.06f, 0.05f); break;
+	case EMJRole::Villain: Body = FLinearColor(0.55f, 0.04f, 0.08f); Accent = FLinearColor(0.9f, 0.75f, 0.65f); Base = FLinearColor(0.2f, 0.02f, 0.03f); break;
 	case EMJRole::Camera: Body = FLinearColor(0.3f, 0.3f, 0.33f); Accent = FLinearColor(0.9f, 0.1f, 0.1f); Base = FLinearColor(0.1f, 0.1f, 0.1f); break;
 	case EMJRole::Crusher: Body = FLinearColor(0.75f, 0.1f, 0.08f); Accent = FLinearColor(0.95f, 0.9f, 0.6f); Base = FLinearColor(0.05f, 0.05f, 0.05f); break;
 	default: break;

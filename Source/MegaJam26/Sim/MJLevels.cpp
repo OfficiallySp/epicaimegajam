@@ -147,6 +147,7 @@ FMJLevelBuilder& FMJLevelBuilder::Actor(EMJRole Role, const TCHAR* Name, EMJDir 
 		case EMJRole::Guard: A.Look = TEXT("Guard"); break;
 		case EMJRole::Camera: A.Look = TEXT("Camera"); break;
 		case EMJRole::Crusher: A.Look = TEXT("Car"); break;
+		case EMJRole::Villain: A.Look = TEXT("Villain"); break;
 		default: A.Look = TEXT("Prop"); break;
 		}
 	}
@@ -265,6 +266,7 @@ namespace MJ
 				else if (R == TEXT("camera")) Role = EMJRole::Camera;
 				else if (R == TEXT("crusher")) Role = EMJRole::Crusher;
 				else if (R == TEXT("prop")) Role = EMJRole::Prop;
+				else if (R == TEXT("villain")) Role = EMJRole::Villain;
 				else Err(i, FString::Printf(TEXT("unknown role '%s'"), *T[0]));
 				const EMJDir Facing = DirOf(T[2][0]);
 				if (Facing == EMJDir::None) Err(i, FString::Printf(TEXT("bad facing '%s'"), *T[2]));
