@@ -243,3 +243,90 @@ rules edits=3 par=2 tools=cut,move
 needitem
 end
 )MJ",
+
+// ------------------------------------------------------------------------------------------- REEL 3: THE SHOWDOWN
+R"MJ(
+level r3s1
+title The Deleted Scene
+reel 3
+slug INT. TROPHY ROOM - NIGHT
+script ACE pockets the Baron's diamond on his way out.
+note New tool: RESTORE. Drag a clip from DELETED SCENES back into its strip.
+map
+#########
+#1..*..X#
+#########
+endmap
+actor star ACE e | e e e e e e
+bin 0 | u=GRAB
+rules edits=1 par=1 tools=cut,move,insert
+needitem
+end
+
+level r3s2
+title The Monologue
+reel 3
+slug INT. THE BARON'S LAIR - NIGHT
+script The BARON talks too long. ACE is gone before the trap springs.
+note The Baron's lines are contractual: they cannot be cut or moved. But the studio did delete one.
+map
+###########
+#1....L..X#
+###########
+#....p...2#
+###########
+endmap
+actor star ACE e locked | e e e e e e e e
+actor villain BARON w sight=0 | w! w! w! w! u=SPRING_TRAP! z2=CACKLE!
+bin 1 | z3=MONOLOGUE
+invert 0
+rules edits=1 par=1 tools=cut,move,insert
+end
+
+level r3s3
+title Hit And Run
+reel 3
+slug EXT. THE BARON'S DRIVEWAY - NIGHT
+script The getaway car clears the road. ACE walks out through what is left of the goon.
+note Props have strips too. This one stalls.
+map
+###3###
+#1....#
+###.###
+###2.X#
+###.###
+###.###
+endmap
+actor star ACE e | z4=WAITS e e s s e e
+actor guard GOON n locked | z9=STANDS_GUARD
+actor crusher CAR s | z2=IDLES s s=CRAWLS z3=STALLS
+bin 2 | s3=FLOOR_IT
+rules edits=2 par=1 tools=cut,move,insert
+end
+
+level r3s4
+title The Showdown
+reel 3
+slug INT. THE BARON'S VAULT - NIGHT
+script ACE beats the trap, PIP holds the door, and ACE walks out with the diamond.
+note The last scene. Every tool, every strip.
+map
+#############
+#1..L..E..*X#
+#############
+#2..e.......#
+#############
+#....p....3.#
+#############
+endmap
+actor star ACE e | e e z3=SODA_AD e e e e e e e e
+actor ally PIP e | e e e e z2=TEXTING
+actor villain BARON w sight=0 | w! w! w! w! w! u=SPRING_TRAP! z2=CACKLE!
+bin 0 | u=GRAB
+bin 2 | z3=MONOLOGUE
+invert 0
+rules edits=3 par=3 tools=cut,move,insert
+needitem
+bonus keep SODA_AD | The sponsor is at the premiere: SODA AD stays in the cut
+end
+)MJ",
