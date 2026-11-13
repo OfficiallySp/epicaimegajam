@@ -68,6 +68,9 @@ public:
 	/** Screening coverage: 0 = the wide master, 1 = close on the star, 3 = high three-quarter. A change of shot is a hard cut. */
 	void SetShot(int32 InShot);
 
+	/** A short camera shake for impacts (punches, lasers, the car). */
+	void Kick(float Strength) { Shake = FMath::Max(Shake, Strength); }
+
 	/** Lights, exposure and grading for a reel. */
 	UFUNCTION(BlueprintCallable, Category = "MegaJam") void ApplyLook(int32 Reel);
 
@@ -151,5 +154,6 @@ private:
 	int32 Shot = 0;
 	bool bShotCut = false;
 	int32 StarFigure = 0;
+	float Shake = 0.f;
 	float CamTime = 0.f;
 };

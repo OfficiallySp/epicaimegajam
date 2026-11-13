@@ -930,6 +930,33 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 		}
 	}
 
+	// ---- what a clip does, on hover
+	if (HoverT >= 0 && D->Edit.Tracks.IsValidIndex(HoverT) && D->Edit.Tracks[HoverT].IsValidIndex(HoverI))
+	{
+		static const TCHAR* DirName[] = { TEXT("north"), TEXT("east"), TEXT("south"), TEXT("west"), TEXT("") };
+		const FMJClip& C = D->Edit.Tracks[HoverT][HoverI];
+		const TCHAR* Dir = DirName[FMath::Clamp((int32)C.Dir, 0, 4)];
+		FString Tip;
+		switch (C.Act)
+		{
+		case EMJAct::Move: Tip = C.Beats > 1 ? FString::Printf(TEXT("Runs %d tiles %s, one per beat"), C.Beats, Dir) : FString::Printf(TEXT("Steps one tile %s"), Dir); break;
+		case EMJAct::Wait: Tip = C.Beats > 1 ? FString::Printf(TEXT("Stands still for %d beats"), C.Beats) : FString(TEXT("Stands still for one beat")); break;
+		case EMJAct::Look: Tip = FString::Printf(TEXT("Turns to face %s (guards see three tiles ahead)"), Dir); break;
+		case EMJAct::Use: Tip = TEXT("Uses what is on this tile: pulls the lever or grabs the prize"); break;
+		case EMJAct::Attack: Tip = TEXT("Knocks out whoever stands on the tile in front"); break;
+		case EMJAct::Chan: Tip = (C.Param & 0x100) ? TEXT("Switches the lasers off") : TEXT("Switches the lasers back on"); break;
+		}
+		if (!MJ::CanEditClip(Lv, D->Edit, HoverT, HoverI)) Tip += TEXT("   -   locked by the studio");
+		FVector2f Pos, Size;
+		ClipRect(L, HoverT, HoverI, Pos, Size);
+		const FSlateFontInfo TF = P.Font(15.f, TEXT("Regular"));
+		const float TW = P.Measure(Tip, TF).X + 24.f;
+		const float TX = FMath::Clamp(Pos.X + Size.X * 0.5f - TW * 0.5f, 12.f, L.W - TW - 12.f);
+		++P.Layer;
+		P.Box(FVector2f(TX, Pos.Y - 40.f), FVector2f(TW, 30.f), Hex(0x05060A, 0.97f), 6.f);
+		P.Text(Tip, FVector2f(TX + 12.f, Pos.Y - 25.f), TF, ColText, 0.f, 0.5f);
+	}
+
 	// ---- drag feedback
 	if (bEdit && bDragMoved && (Drag == EDrag::Clip || Drag == EDrag::Bin))
 	{
@@ -977,6 +1004,19 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		P.Box(Pos, FVector2f(6.f, Size.Y), ColAmber, 3.f);
 		P.Text(TEXT("STUDIO NOTE"), Pos + FVector2f(18.f, 20.f), P.Font(12.f), ColAmber, 0.f, 0.5f);
 		P.Text(Lv.Note, Pos + FVector2f(126.f, 20.f), F, ColText, 0.f, 0.5f);
+	}
+
+	if (D->Phase == EMJPhase::Screening && D->bIntro && D->PhaseTime < D->IntroHold)
+	{
+		// a new reel opens with its own card: the name of the reel and the tool it adds
+		static const TCHAR* Names[3] = { TEXT("THE HEIST"), TEXT("THE GETAWAY"), TEXT("THE SHOWDOWN") };
+		static const TCHAR* Tools[3] = { TEXT("YOUR TOOL:  CUT"), TEXT("NEW TOOL:  SPLICE"), TEXT("NEW TOOL:  RESTORE DELETED SCENES") };
+		const int32 R = FMath::Clamp(Lv.Reel - 1, 0, 2);
+		const float A = FMath::Clamp(D->PhaseTime / 0.25f, 0.f, 1.f) * FMath::Clamp((D->IntroHold - D->PhaseTime) / 0.45f, 0.f, 1.f);
+		P.Box(FVector2f(0.f, 74.f), FVector2f(L.W, L.PanelY - 100.f), Hex(0x05060A, 0.86f * A));
+		P.Text(FString::Printf(TEXT("REEL %d"), Lv.Reel), Mid + FVector2f(0.f, -118.f), P.Font(32.f), Fade(ColAmber, A), 0.5f, 0.5f);
+		P.Text(Names[R], Mid + FVector2f(0.f, -24.f), P.Font(124.f, TEXT("Black")), Fade(ColText, A), 0.5f, 0.5f);
+		P.Text(Tools[R], Mid + FVector2f(0.f, 84.f), P.Font(24.f), Fade(ColGreen, A), 0.5f, 0.5f);
 	}
 
 	if (D->Phase == EMJPhase::Edit && D->HintTime > 0.f && !D->HintText.IsEmpty())

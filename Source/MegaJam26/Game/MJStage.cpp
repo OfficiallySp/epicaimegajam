@@ -44,6 +44,13 @@ namespace
 		}
 	}
 
+	/** The glow material is tuned for thin beams; solid shapes need far less boost or they bloom into a blob. */
+	UMaterialInstanceDynamic* Dimmed(UMaterialInstanceDynamic* M, float Boost)
+	{
+		M->SetScalarParameterValue(TEXT("Boost"), Boost);
+		return M;
+	}
+
 	FLinearColor ChanColor(int32 Chan)
 	{
 		static const FLinearColor Colors[4] = {
@@ -332,7 +339,7 @@ void AMJStage::BuildFigure(const FMJActorDef& D, FMJFigure& Out)
 		AddMesh(Out.Tilt, CubeMesh, FVector(15.f, 0.f, 90.f), FVector(0.1f, 0.2f, 0.06f), Solid(FLinearColor(0.02f, 0.02f, 0.02f), 0.3f));
 	}
 
-	Out.Alert = AddKit(Out.Pivot, TEXT("alert_mark"), FVector(0.f, 0.f, Height + 14.f), { { TEXT("Glow"), GlowMat(FLinearColor(1.f, 0.12f, 0.05f), 1.f) } }, FRotator(0.f, 90.f, 0.f), FVector(1.5f), false);
+	Out.Alert = AddKit(Out.Pivot, TEXT("alert_mark"), FVector(0.f, 0.f, Height + 14.f), { { TEXT("Glow"), Dimmed(GlowMat(FLinearColor(1.f, 0.10f, 0.04f), 1.f), 1.4f) } }, FRotator(0.f, 90.f, 0.f), FVector(1.5f), false);
 	Out.Alert->SetVisibility(false);
 	Out.Carry = AddKit(Out.Pivot, TEXT("gem"), FVector(0.f, 0.f, Height + 26.f), { { TEXT("Glow"), Solid(FLinearColor(0.30f, 0.85f, 1.f), 0.08f, 0.9f) } }, FRotator::ZeroRotator, FVector(0.5f), false);
 	Out.Carry->SetVisibility(false);
@@ -600,7 +607,10 @@ void AMJStage::Tick(float DeltaSeconds)
 	CamLoc = FMath::Lerp(CamLoc, Loc, K);
 	CamRot = FMath::Lerp(CamRot, Rot, K);
 	CamFocus = FMath::Lerp(CamFocus, Focus, K);
-	Camera->SetRelativeLocationAndRotation(CamLoc, CamRot);
+	Shake = FMath::Max(0.f, Shake - DeltaSeconds * 3.4f);
+	const float ShakeT = CamTime * 60.f;
+	const FVector ShakeOffset(0.f, FMath::Sin(ShakeT * 1.3f) * Shake * 16.f, FMath::Cos(ShakeT * 1.7f) * Shake * 11.f);
+	Camera->SetRelativeLocationAndRotation(CamLoc + ShakeOffset, CamRot + FRotator(FMath::Sin(ShakeT * 1.1f) * Shake * 0.35f, 0.f, FMath::Cos(ShakeT * 0.9f) * Shake * 0.5f));
 	Camera->SetFieldOfView(CamFov);
 	Camera->PostProcessSettings.DepthOfFieldFocalDistance = CamFocus;
 	// the cutting room needs the whole set readable; the title and screenings can afford a much shallower focus

@@ -79,6 +79,7 @@ foreach ($raw in ($Steps -split '[;\r\n]+')) {
     $t = $step -split '\s+', 2; $verb = $t[0].ToLower(); $rest = if ($t.Count -gt 1) { $t[1] } else { '' }
     switch ($verb) {
         'wait' { Start-Sleep -Milliseconds ([int]([double]$rest * 1000)) }
+        'move' { $a = $rest -split '\s+'; Move-To $a[0] $a[1]; Start-Sleep -Milliseconds 350 }
         'click' {
             $a = $rest -split '\s+'; Move-To $a[0] $a[1]; Start-Sleep -Milliseconds 120
             [MJIn]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 70; [MJIn]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero); Start-Sleep -Milliseconds 350

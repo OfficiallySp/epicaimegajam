@@ -268,6 +268,8 @@ void AMJDirector::StartGame()
 void AMJDirector::PlayLevel(int32 Index)
 {
 	LoadLevel(Index);
+	const TArray<FMJLevelDef>& All = MJ::Levels();
+	IntroHold = (LevelIndex == 0 || (All.IsValidIndex(LevelIndex - 1) && All[LevelIndex - 1].Reel != Level.Reel)) ? 2.6f : 0.f; // first scene of a reel
 	bIntro = true;
 	PlayTime = 0.f;
 	LastBeatFired = -1;
@@ -295,6 +297,7 @@ void AMJDirector::LoadLevel(int32 Index)
 	PlayTime = 0.f;
 	bFast = false;
 	bIntro = false;
+	IntroHold = 0.f;
 	Menu = EMJMenu::None;
 	Resim();
 	if (Stage)
@@ -607,7 +610,11 @@ void AMJDirector::Tick(float DeltaSeconds)
 	if (Phase == EMJPhase::Screening && Menu == EMJMenu::None)
 	{
 		const float End = (float)Sim.EndBeat;
-		if (PlayTime < End)
+		if (bIntro && PhaseTime < IntroHold)
+		{
+			// the reel card is up: hold the first frame
+		}
+		else if (PlayTime < End)
 		{
 			const float Speed = BeatsPerSecond * (bFast ? FastMultiplier : 1.f) * (bIntro ? IntroSpeed : 1.f);
 			PlayTime = FMath::Min(End, PlayTime + DeltaSeconds * Speed);
@@ -620,7 +627,21 @@ void AMJDirector::Tick(float DeltaSeconds)
 		}
 		for (int32 i = PendingSfx.Num() - 1; i >= 0; --i)
 		{
-			if (PendingSfx[i].Beat <= PlayTime) { Sfx(PendingSfx[i].Cue); PendingSfx.RemoveAtSwap(i); }
+			if (PendingSfx[i].Beat <= PlayTime)
+			{
+				const FName Cue = PendingSfx[i].Cue;
+				Sfx(Cue);
+				if (Stage)
+				{
+					static const FName Punch("punch"), Zap("zap"), Crush("crush"), Down("down"), Spotted("spotted"), Door("door");
+					if (Cue == Crush) Stage->Kick(1.f);
+					else if (Cue == Zap) Stage->Kick(0.85f);
+					else if (Cue == Punch) Stage->Kick(0.7f);
+					else if (Cue == Spotted) Stage->Kick(0.45f);
+					else if (Cue == Down || Cue == Door) Stage->Kick(0.25f);
+				}
+				PendingSfx.RemoveAtSwap(i);
+			}
 		}
 		if (PlayTime >= End && EndHold >= EndHoldSeconds)
 		{

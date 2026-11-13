@@ -29,7 +29,11 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
   every block; give bounded chores to sub-agents (Codex for Meshy/Blender/shell work, Sonnet for fal).
 - Windows System Restore rolls back `.dll`, `.exe`, `.ini` and `.inl` files inside the repo (13 Nov). After a restore:
   `git status`, `git checkout -- <rolled-back files>`, `tools/rebuild.ps1`.
-- Open: team name and `butler login` (Shane), human playtest with sound, painted backdrops, fonts, gameplay video.
+- Test the packaged build with real input: `tools/drive-game.ps1 -Steps "..."` (click / drag / move / key / gshot /
+  expect); `gshot` is an in-engine screenshot (F10) and works with the monitors off, `shot` and `record` need a live
+  display. `tools/make-video.ps1` records the 58 s gameplay video (needs a monitor on; it refuses black footage).
+- The PC drops the GPU device when it enters Modern Standby (editor dies with DXGI_ERROR_DEVICE_REMOVED): just reopen.
+- Open: team name and `butler login` (Shane), human playtest with sound, final video run with a monitor on.
 
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.

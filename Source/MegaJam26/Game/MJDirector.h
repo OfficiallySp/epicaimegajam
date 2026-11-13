@@ -123,6 +123,7 @@ public:
 	int32 HintUid = -1;
 	float HintTime = 0.f;
 	int32 FailCount = 0;    // failed screenings of the player's own cut in this scene
+	float IntroHold = 0.f;  // seconds the theatrical cut waits while a "REEL n" card is on screen
 
 private:
 	void Resim();
