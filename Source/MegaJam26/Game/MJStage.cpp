@@ -8,6 +8,7 @@
 #include "Components/SpotLightComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/Texture.h"
 #include "Engine/TextureCube.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
@@ -374,7 +375,19 @@ void AMJStage::Build(const FMJLevelDef& L)
 	UMaterialInstanceDynamic* FloorTrim = Solid(Look.FloorTrim, 0.6f);
 	UMaterialInstanceDynamic* WallPaint = Solid(Look.Wall, 0.8f);
 	UMaterialInstanceDynamic* WallTrim = Solid(Look.WallTrim, 0.7f);
-	UMaterialInstanceDynamic* Backdrop = Solid(Look.Backdrop, 0.85f);
+	// the flats carry a painted atlas (four panels per reel, tools/make_backdrops.py); plain paint if it is missing
+	UMaterialInterface* Backdrop = Solid(Look.Backdrop, 0.85f);
+	if (UMaterialInterface* BackdropBase = LoadQuiet<UMaterialInterface>(TEXT("/Game/MegaJam26/Materials/M_Backdrop.M_Backdrop")))
+	{
+		const int32 R = FMath::Clamp(L.Reel, 1, 3);
+		if (UTexture* Atlas = LoadQuiet<UTexture>(*FString::Printf(TEXT("/Game/MegaJam26/Environment/T_Backdrop_R%d.T_Backdrop_R%d"), R, R)))
+		{
+			UMaterialInstanceDynamic* M = UMaterialInstanceDynamic::Create(BackdropBase, this);
+			M->SetTextureParameterValue(TEXT("Atlas"), Atlas);
+			Mats.Add(M);
+			Backdrop = M;
+		}
+	}
 	UMaterialInstanceDynamic* FlatWood = Solid(FLinearColor(0.42f, 0.28f, 0.15f), 0.7f);
 
 	// the desk and the plinth the set stands on
@@ -386,6 +399,7 @@ void AMJStage::Build(const FMJLevelDef& L)
 	UInstancedStaticMeshComponent* TilesB = AddInstanced(TEXT("floor_tile_b"), { { TEXT("Paint"), FloorB }, { TEXT("Trim"), FloorTrim } });
 	UInstancedStaticMeshComponent* Walls = AddInstanced(TEXT("wall_block"), { { TEXT("Paint"), WallPaint }, { TEXT("Trim"), WallTrim } });
 	UInstancedStaticMeshComponent* Flats = AddInstanced(TEXT("flat_backdrop"), { { TEXT("Backdrop"), Backdrop }, { TEXT("Wood"), FlatWood } });
+	Flats->SetNumCustomDataFloats(1); // which of the four painted panels this flat shows
 
 	auto IsOpen = [&L](FIntPoint P) { return L.InBounds(P) && L.Cell(P).Tile != EMJTile::Wall && L.Cell(P).Tile != EMJTile::Void; };
 
@@ -415,7 +429,8 @@ void AMJStage::Build(const FMJLevelDef& L)
 			// a painted flat stands along the far edge wherever the floor meets a wall
 			if (!IsOpen(P + FIntPoint(0, -1)))
 			{
-				Flats->AddInstance(FTransform(FRotator(0.f, 90.f, 0.f), TileToWorld(P), FVector(1.f, 1.f, FlatHeightScale)));
+				const int32 Flat = Flats->AddInstance(FTransform(FRotator(0.f, 90.f, 0.f), TileToWorld(P), FVector(1.f, 1.f, FlatHeightScale)));
+				Flats->SetCustomDataValue(Flat, 0, (float)((X + 2 * Y) % 4), true);
 			}
 
 			if (C.Fix == EMJFix::None) continue;

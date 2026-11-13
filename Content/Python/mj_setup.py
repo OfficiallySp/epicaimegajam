@@ -113,6 +113,72 @@ def import_mesh(src, name, folder="/Game/MegaJam26/Characters", prefix="SM_"):
     return f"{target}: tris={mesh.get_num_triangles(0)} extent=({b.box_extent.x:.0f},{b.box_extent.y:.0f},{b.box_extent.z:.0f}) meshes={len(meshes)}"
 
 
+def import_backdrops(src_dir="C:/Users/Shane/epicaimegajam/assets/src/backdrops"):
+    """Import the painted backdrop atlases (tools/make_backdrops.py) as /Game/MegaJam26/Environment/T_Backdrop_R<n>."""
+    import glob
+    import os
+    tasks = []
+    for f in sorted(glob.glob(src_dir + "/T_Backdrop_R*.png")):
+        task = unreal.AssetImportTask()
+        task.set_editor_property("filename", f.replace("\\", "/"))
+        task.set_editor_property("destination_path", "/Game/MegaJam26/Environment")
+        task.set_editor_property("destination_name", os.path.splitext(os.path.basename(f))[0])
+        task.set_editor_property("automated", True)
+        task.set_editor_property("replace_existing", True)
+        task.set_editor_property("save", True)
+        tasks.append(task)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks(tasks)
+    return f"{len(tasks)} backdrop atlases imported"
+
+
+def create_backdrop(force=False):
+    """Lit backdrop for the flats: a 4-panel atlas, the panel picked by per-instance custom data 0. Params: Atlas, Tint, Lift."""
+    mat = _new_material("M_Backdrop", force)
+    if mat is None:
+        return "M_Backdrop exists"
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
+    uv = _mel.create_material_expression(mat, unreal.MaterialExpressionTextureCoordinate, -1100, 0)
+    uv.set_editor_property("u_tiling", 0.25)
+    uv.set_editor_property("v_tiling", 1.0)
+    panel = _mel.create_material_expression(mat, unreal.MaterialExpressionPerInstanceCustomData, -1100, 200)
+    panel.set_editor_property("data_index", 0)
+    quarter = _mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -1100, 320)
+    quarter.set_editor_property("r", 0.25)
+    shift = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -900, 220)
+    _mel.connect_material_expressions(panel, "", shift, "A")
+    _mel.connect_material_expressions(quarter, "", shift, "B")
+    zero = _mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -900, 360)
+    zero.set_editor_property("r", 0.0)
+    offset = _mel.create_material_expression(mat, unreal.MaterialExpressionAppendVector, -720, 260)
+    _mel.connect_material_expressions(shift, "", offset, "A")
+    _mel.connect_material_expressions(zero, "", offset, "B")
+    uv2 = _mel.create_material_expression(mat, unreal.MaterialExpressionAdd, -540, 100)
+    _mel.connect_material_expressions(uv, "", uv2, "A")
+    _mel.connect_material_expressions(offset, "", uv2, "B")
+    tex = _mel.create_material_expression(mat, unreal.MaterialExpressionTextureSampleParameter2D, -340, 60)
+    tex.set_editor_property("parameter_name", "Atlas")
+    default_tex = _eal.load_asset("/Game/MegaJam26/Environment/T_Backdrop_R1")
+    if default_tex:
+        tex.set_editor_property("texture", default_tex)
+    _mel.connect_material_expressions(uv2, "", tex, "UVs")
+    tint = _vec(mat, "Tint", (1.0, 1.0, 1.0, 1.0), -340, 320)
+    color = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -100, 120)
+    _mel.connect_material_expressions(tex, "RGB", color, "A")
+    _mel.connect_material_expressions(tint, "", color, "B")
+    lift = _scalar(mat, "Lift", 0.12, -340, 520)
+    glow = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -100, 360)
+    _mel.connect_material_expressions(color, "", glow, "A")
+    _mel.connect_material_expressions(lift, "", glow, "B")
+    rough = _mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -100, 560)
+    rough.set_editor_property("r", 0.88)
+    _mel.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    _mel.connect_material_property(glow, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    _mel.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    _mel.recompile_material(mat)
+    _eal.save_loaded_asset(mat)
+    return "M_Backdrop created"
+
+
 def run(force=False):
     out = [create_solid(force), create_glow(force), create_stage_map()]
     print("; ".join(out))

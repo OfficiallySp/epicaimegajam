@@ -100,6 +100,21 @@ foreach ($raw in ($Steps -split '[;\r\n]+')) {
             $g.CopyFromScreen($c.X, $c.Y, 0, 0, $bmp.Size); $out = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $rest))
             New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null; $bmp.Save($out); $g.Dispose(); $bmp.Dispose(); Write-Host "shot $out"
         }
+        'record' {
+            # record <file.mp4> <seconds>: capture the game's client area (and system audio when MJ_AUDIO_DEVICE names a
+            # DirectShow loopback device) in the background while the following steps run
+            $a = $rest -split '\s+'; $c = Get-Client
+            $out = [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $a[0])); New-Item -ItemType Directory -Force -Path (Split-Path $out) | Out-Null
+            $w = $c.W - ($c.W % 2); $hh = $c.H - ($c.H % 2)
+            $ff = @('-y', '-hide_banner', '-loglevel', 'error', '-f', 'gdigrab', '-framerate', '60', '-draw_mouse', '1', '-offset_x', $c.X, '-offset_y', $c.Y, '-video_size', "${w}x${hh}", '-i', 'desktop')
+            if ($env:MJ_AUDIO_DEVICE) { $ff += @('-f', 'dshow', '-i', ('audio="{0}"' -f $env:MJ_AUDIO_DEVICE)) }
+            $ff += @('-t', $a[1], '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '17', '-pix_fmt', 'yuv420p')
+            if ($env:MJ_AUDIO_DEVICE) { $ff += @('-c:a', 'aac', '-b:a', '192k') }
+            $ff += ('"{0}"' -f $out)
+            Start-Process -FilePath ffmpeg -ArgumentList $ff -WindowStyle Hidden | Out-Null
+            Start-Sleep -Milliseconds 900
+            Write-Host "recording $out for $($a[1]) s"
+        }
         'expect' {
             $pattern = $rest.Trim("'`"")
             $new = @(Get-Content $logFile | Select-Object -Skip $logMark)
