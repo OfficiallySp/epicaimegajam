@@ -139,6 +139,8 @@ private:
 
 	UPROPERTY() TMap<FName, TObjectPtr<USoundBase>> SoundCache;
 	UPROPERTY() TObjectPtr<UAudioComponent> Music;
+	UPROPERTY() TObjectPtr<UAudioComponent> Projector; // whirr under every screening
+	int32 StarsPinged = 0;
 	FName MusicCue;
 
 	TArray<FMJEditState> UndoStack, RedoStack;

@@ -194,6 +194,20 @@ void AMJDirector::SetPhase(EMJPhase NewPhase)
 	case EMJPhase::Screening: SetMusic(TEXT("music_screening")); break;
 	default: SetMusic(TEXT("music_edit")); break;
 	}
+	StarsPinged = 0;
+	if (Phase == EMJPhase::Screening && !Projector)
+	{
+		if (USoundBase* Whirr = FindSound(TEXT("projector_loop")))
+		{
+			Projector = UGameplayStatics::SpawnSound2D(this, Whirr, 1.f, 1.f, 0.f, nullptr, false, true);
+			if (Projector) Projector->FadeIn(0.25f, 0.45f * (Save ? Save->SfxVolume : 1.f));
+		}
+	}
+	else if (Phase != EMJPhase::Screening && Projector)
+	{
+		Projector->FadeOut(0.35f, 0.f);
+		Projector = nullptr;
+	}
 	if (Stage)
 	{
 		Stage->SetCamMode(Phase == EMJPhase::Title || Phase == EMJPhase::Credits ? EMJCamMode::Title : (Phase == EMJPhase::Screening ? EMJCamMode::Screening : EMJCamMode::Edit));
@@ -524,10 +538,17 @@ void AMJDirector::Roll()
 void AMJDirector::BackToEdit()
 {
 	if (Phase == EMJPhase::Edit || Phase == EMJPhase::Title || Phase == EMJPhase::Credits) return;
+	const bool bFromIntro = bIntro;
 	PendingSfx.Reset();
 	bFast = false;
 	bIntro = false;
 	SetPhase(EMJPhase::Edit);
+	// the first scene of each reel teaches a tool: point at the edit the first time the player lands in the cutting room
+	if (bFromIntro && CachedCost == 0 && StarMask(Level.Id) == 0 && (Level.Id == TEXT("r1s1") || Level.Id == TEXT("r2s1") || Level.Id == TEXT("r3s1")))
+	{
+		Hint();
+		HintTime = 25.f;
+	}
 }
 
 void AMJDirector::Scrub(float Beat)
@@ -622,6 +643,18 @@ void AMJDirector::Tick(float DeltaSeconds)
 				Sfx(TEXT("cutcall"));
 				UE_LOG(LogMJ, Display, TEXT("CUT! level %s at beat %d%s: %s"), *Level.Id, Sim.EndBeat, bIntro ? TEXT(" (theatrical cut)") : TEXT(""), *MJ::OutcomeText(Level, Sim));
 			}
+		}
+	}
+
+	if (Phase == EMJPhase::Printed)
+	{
+		// one chime per star, in step with the stars landing on the PRINT IT card
+		const bool Earned[3] = { true, bStarPar, bStarBonus };
+		const int32 Count = Level.Bonus != EMJBonus::None ? 3 : 2;
+		while (StarsPinged < Count && PhaseTime >= 0.25f + StarsPinged * 0.22f)
+		{
+			if (Earned[StarsPinged]) Sfx(TEXT("star"), 0.9f, 1.f + 0.12f * StarsPinged);
+			++StarsPinged;
 		}
 	}
 
