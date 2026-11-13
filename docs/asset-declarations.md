@@ -33,4 +33,9 @@ their license, and (C) the AI tools used. Keep this file current in the same com
 | Claude Code with Claude Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5 | code, editor automation through Unreal MCP, scripts, planning, dev-log drafts |
 | Codex / GPT-6 Astra in T3 Code | pre-jam tooling setup, MCP integration research and configuration (11 Nov) |
 | Unreal MCP (Epic, experimental, UE 5.8) | agent access to the editor |
-| (add each generator from `docs/asset-pipeline.md` as it is used) | |
+| Claude Fable 5.2 (Claude Code in T3 Code) | concept, design, all game code, level design with a solver, editor automation, sub-agent briefs, dev log (12 Nov onward) |
+| Claude Sonnet 5.5 (sub-agent) | ran the fal audio generation and post-processing |
+| Codex / GPT-6 Astra (sub-agents, 13 Nov) | ran Meshy prop generation; wrote the Blender script that builds the set kit |
+| Meshy (nano-banana-pro images, meshy-t2.5 geometry, meshy-7 textures) | figurines and props |
+| fal (sonilo/v1.1 sound effects, elevenlabs/music/v2.5) | all sound effects and music |
+| Blender 5.2 (scripted, headless) | modular set kit |

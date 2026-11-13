@@ -2,11 +2,34 @@
 
 Solo entry by Shane, who is new to Unreal. This repo root **is** the Unreal project root: `MegaJam26.uproject`,
 the configured `.mcp.json` and this file all live here, and `claude` is launched from here so they load.
-Current setup: minimal C++ module, engine template scene and editor-only MCP plugins. The optional Third Person
-templates are not installed; no custom game content exists. Start the editor with `tools/open-editor.ps1`.
+Theme: **DIRECTOR’S CUT**. The game is **Fix It In Post** (concept and rules: `docs/design.md`): every level is a
+finished movie scene that goes wrong; the player cuts, splices and restores clips on each actor's film strip so the
+scene ends as scripted. Everything is C++ (no Blueprints); the set is built procedurally in one empty map, `L_Stage`.
 
-Announced theme: **DIRECTOR’S CUT**. The announcement supplied by Shane is recorded in
-`docs/rules-summary.md`. The game concept is still to be chosen; development starts Thu 12 Nov 05:00 GMT.
+## State of the game (keep this section current; it is the hand-over between sessions)
+- `Source/MegaJam26/Sim/`: engine-free beat simulation (`MJSim.cpp`), level text format + embedded campaign
+  (`MJLevels.cpp`, `MJLevelData.inl`: 16 scenes in 3 reels), brute-force solver (`MJSolver.cpp`).
+- `Game/MJDirector`: flow (Title, Edit, Screening, Failed, Printed, Credits), save (`UMJSave`), hints, audio by cue
+  name (`/Game/MegaJam26/Audio/SW_<cue>`), `mj.*` console commands for every player action.
+- `Game/MJStage`: builds the set from the Blender kit (`/Game/MegaJam26/Kit/SM_<piece>`, materials assigned by slot
+  name), Meshy figurines (`Characters/SM_<Look>`) and desk props (`Props/SM_<Name>`); poses everything as a pure
+  function of fractional beat time; lights, exposure and tilt-shift depth of field per reel.
+- `UI/SMJHud`: the whole UI is one custom-painted Slate leaf widget (immediate-mode buttons, own hit testing).
+- Source art, audio and manifests live under `assets/src/`; import with `Content/Python/mj_setup.py`.
+- Design levels in a text file and check them without compiling:
+  `unreal.MJDevLibrary.solve_levels(text, False)` (editor Python). A scene ships when the theatrical cut fails, the
+  minimum equals par and the bonus is reachable. Then add it to `MJLevelData.inl` (Live Coding does NOT reload the
+  level list; restart the editor).
+- Agent loop from the shell (works even when the session's own unreal-mcp connection is down):
+  `node tools/mcp/unreal-call.mjs pie start|stop`, `... console "mj.Play r1s1"`, `... py "@script.py"`,
+  `... LiveCodingToolset.LiveCodingToolset CompileLiveCoding`; screenshot = `console "shot showui"` then
+  `tools/latest-shot.ps1` (copies it to `.cache/shot.png`). Header changes: `tools/rebuild.ps1` (closes only this
+  project's editor, full build with `-NoHotReloadFromIDE`, reopens).
+- Claude usage is the bottleneck: about one hour of agent work per five-hour window. Commit and push at the end of
+  every block; give bounded chores to sub-agents (Codex for Meshy/Blender/shell work, Sonnet for fal).
+- Windows System Restore rolls back `.dll`, `.exe`, `.ini` and `.inl` files inside the repo (13 Nov). After a restore:
+  `git status`, `git checkout -- <rolled-back files>`, `tools/rebuild.ps1`.
+- Open: team name and `butler login` (Shane), human playtest with sound, painted backdrops, fonts, gameplay video.
 
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.

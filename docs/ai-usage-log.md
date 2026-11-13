@@ -49,3 +49,13 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
 - 2026-11-13 · Codex / GPT-6 Astra (delegated by Claude Fable 5.2) + Meshy · finish nine props: replace reel/lamp images, create scissors/filmcan images, generate nine GLBs and download existing Baron · all kept; sizes, triangles and bounds checked; 171 credits spent (932 → 761), prior paid tasks excluded · time saving not measured
 
 - 2026-11-13 00:00–00:35 GMT · Claude Sonnet 5.5 subagent + fal · generate the full audio pack: 30 SFX cues and a projector loop (sonilo/v1.1/text-to-sound-effects) plus three instrumental music loops (elevenlabs/music/v2.5), trimmed, normalised and loop-crossfaded with ffmpeg, manifest in assets/src/audio/manifest.md · all kept, no regenerations; many SFX were trimmed to a length cap (generator tails ran longer than targets); est. spend about 2.06 USD of 12 USD; listening checks not done (measured only) · time saving not measured
+
+- 2026-11-13 00:00–00:20 GMT · Codex / GPT-6 Astra (delegated by Claude Fable 5.2) + Blender 5.2 scripting · build a
+  20-piece modular set kit as GLBs from one generator script with a re-import check (`tools/blender/make_kit.py`,
+  `check_kit.py`) · all 20 pieces kept and imported · replaced the engine-primitive greybox
+
+- 2026-11-13 00:00–00:20, 05:00–05:10 and 08:14–08:40 GMT · Claude Fable 5.2 (Claude Code in T3 Code) + Unreal MCP ·
+  game flow (title, theatrical-cut intro, save, hints, pause, scene select, credits), Villain role, audio hooks, 16
+  scenes designed against the brute-force solver, kit-based set builder with per-reel looks and tilt-shift depth of
+  field, briefs for three sub-agents, import of their output, recovery after a system restore (`git fsck`, LFS check,
+  rebuild, shell MCP client) · all kept · no human code
