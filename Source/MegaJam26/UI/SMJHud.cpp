@@ -1208,7 +1208,7 @@ void SMJHud::PaintCredits(FMJPaint& P, const FLayout& L) const
 void SMJHud::PaintMenu(FMJPaint& P, const FLayout& L) const
 {
 	const AMJDirector* D = Director.Get();
-	P.Box(FVector2f(0.f, 0.f), FVector2f(L.W, 1080.f), Hex(0x05060A, 0.78f));
+	P.Box(FVector2f(0.f, 0.f), FVector2f(L.W, 1080.f), Hex(0x05060A, D->Menu == EMJMenu::Scenes ? 0.94f : 0.80f));
 	const FVector2f Mid(L.W * 0.5f, 540.f);
 
 	if (D->Menu == EMJMenu::Pause)
