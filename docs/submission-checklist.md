@@ -32,6 +32,10 @@
 ## 17:00, submit
 - [ ] Jam page > Submit your project > select the game. Form: team name, member name + Epic email, game name, video
       link, dev-log link, declarations (pre-jam items, assets, AI tools).
+- [ ] OpenAI Awards: use the prepared answer in `docs/itch-page.md`; credit OpenAI GPT-6 Astra / Codex alongside
+      Claude Fable 5.2, Claude Opus 5.5 and the T3 Code orchestrator, with concrete set-kit and prop-pipeline examples.
+- [ ] NVIDIA RTX Award: the current build has no qualifying integration. Leave feature boxes unchecked unless an
+      eligible feature is added and verified in the packaged build; see `docs/itch-page.md` for the DLSS proposal.
 - [ ] Final dev-log post (Glass Box): what AI did, what Shane did by hand, what broke, screenshots, the video link.
 - [ ] Confirm the entry appears on the jam's entries page. Screenshot it.
 - [ ] `git push`, `git tag submitted`.

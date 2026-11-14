@@ -1,4 +1,6 @@
-"""Paint the backdrop atlases for the set's flats: one 2048x640 image per reel, four panels wide.
+"""Earlier script-painted fallback, superseded by gpt-image-2 art via assemble_backdrops.py.
+
+Paint the backdrop atlases for the set's flats: one 2048x640 image per reel, four panels wide.
 
 Run:  python tools/make_backdrops.py      (needs Pillow: python -m pip install pillow)
 Output: assets/src/backdrops/T_Backdrop_R<1..3>.png, imported by Content/Python/mj_setup.py (import_backdrops).

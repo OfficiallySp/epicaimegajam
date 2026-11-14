@@ -83,6 +83,11 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   studio's version); coverage is planned from the simulation per beat (master, star close shots, cutaways to
   levers/doors/lasers/knock-outs/the car, zoomed two-shots), checked for all 18 solved scenes with `mj.ShotsAll` and
   PIE screenshots · all kept · no human code
+- 2026-11-14 · Codex / GPT-6 Astra in T3 Code · check NVIDIA feature feasibility and prepare OpenAI award disclosure;
+  inspect renderer, installed plugins and editor GPU log; verify current jam requirements, OpenAI model name and
+  NVIDIA's UE 5.8 DLSS offering · submission copy, credits and checklist updated with Astra's documented set-kit and
+  prop-pipeline work, Claude Fable 5.2 / Opus 5.5 and T3 Code orchestration; DLSS recorded as a proposal requiring RTX
+  validation, not a shipped feature · documentation only; no renderer changes or RTX testing; time saving not measured
 - 2026-11-14 12:42–13:00 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · PIE checks of the review
   fixes (rewatch keeps the cut, hint with no edits left, hint before the solve is done, same-scene reload, identical
   clips), team name `officiallysp` in `tools/jam.env` and the itch page draft, final package and zip · all kept
@@ -94,3 +99,6 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   worktree, following the engine's shipped web-deploy agent skill: emscripten 6.0.10, AI toolsets off for the cook, Development
   build cooks 0 errors and boots in Edge (READY 10.1 s, deferred tier) with a working HUD but a black 3D view; parked at the
   time box. Also: unreal-smoke.mjs moved to ConsoleToolset.LogsToolset (5.9 rename); dev log section · kept on `ue59`
+- 2026-11-14 13:00–13:35 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · Shane asked to target as many jam prizes as possible: prize-by-prize eligibility plan (`docs/prize-plan.md`), history scan for secrets before making the repo public, brief for the backdrop art below · all kept · no human code
+- 2026-11-14 13:40–17:10 GMT · Codex / GPT-6 Astra (delegated by Claude Opus 5.5) + Meshy `gpt-image-2` · replace the script-painted set backdrops with OpenAI-generated art: 12 wall-flat panels (4 per reel) and a key-art restyle of an in-game frame; `tools/assemble_backdrops.py` crops them to 512x640 and makes every panel edge tile with every other; prompts, task ids and licence in `assets/src/backdrops/README.md` · all kept, no regenerations; 120 Meshy credits (761 → 641)
+- 2026-11-14 17:15–17:25 GMT · Claude Opus 5.5 + Unreal MCP (UE 5.9) · reimported the three atlases, PIE screenshots of reels 1, 2 and 3 show the new paintings, posters and lair panels; no errors in the log · all kept

@@ -1,0 +1,109 @@
+[
+  {
+    "name": "R1_1",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Teal striped museum wallpaper (#1e6874), antique gold picture rail near top, brown wood wainscot bottom 28 percent. Invented gold-framed sunset mountain landscape and blank brass plaque.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R1_2",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Teal striped museum wallpaper (#1e6874), antique gold picture rail near top, brown wood wainscot bottom 28 percent. Single elegant brass wall sconce with cream triangular shade.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R1_3",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Teal striped museum wallpaper (#1e6874), antique gold picture rail near top, brown wood wainscot bottom 28 percent. Gold-framed generic anonymous painted aristocrat portrait and blank brass plaque.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R1_4",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Teal striped museum wallpaper (#1e6874), antique gold picture rail near top, brown wood wainscot bottom 28 percent. Small cream exhibition placard with abstract geometric pictograms, no text.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R2_1",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Rust red brick alley wall (#7e3e30), dark plum mortar and grime along bottom 11 percent. Torn cream and red graphic poster with abstract circle, no lettering.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R2_2",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Rust red brick alley wall (#7e3e30), dark plum mortar and grime along bottom 11 percent. Bare weathered brick with subtle damp patches.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R2_3",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Rust red brick alley wall (#7e3e30), dark plum mortar and grime along bottom 11 percent. Grey metal pipe and bold red valve wheel.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R2_4",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Rust red brick alley wall (#7e3e30), dark plum mortar and grime along bottom 11 percent. Small barred window glowing amber with grey sill.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R3_1",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Burgundy riveted steel villain lair wall (#4a1e24), black seams, red horizontal floor line near bottom. Invented red hollow triangle crest inside black circular medallion.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R3_2",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Burgundy riveted steel villain lair wall (#4a1e24), black seams, red horizontal floor line near bottom. Central yellow and charcoal diagonal hazard stripe panel.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R3_3",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Burgundy riveted steel villain lair wall (#4a1e24), black seams, red horizontal floor line near bottom. Retro black monitor with green waveform and three coloured indicator lights, no text.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "R3_4",
+    "credits": 9,
+    "ai_model": "gpt-image-2",
+    "prompt": "One straight-on orthographic painted theatre wall flat, edge-to-edge portrait wall texture for a miniature 1960s spy caper diorama. Bold simple silhouettes, hand-painted gouache and handmade brush texture, readable at tiny scale. No perspective, floor, ceiling, people, letters, numbers, logos or watermark. Keep all motifs inside central 70 percent width. Burgundy riveted steel villain lair wall (#4a1e24), black seams, red horizontal floor line near bottom. Bold dark steel ventilation grille.",
+    "aspect_ratio": "2:3",
+    "response_format": "json"
+  },
+  {
+    "name": "keyart",
+    "credits": 12,
+    "ai_model": "gpt-image-2",
+    "prompt": "Restyle this exact game scene as an expressive hand-painted 1960s spy-film poster, gouache brushwork, bold cinematic silhouettes, warm cream, teal, burgundy and gold. Preserve the scene layout, miniature set, props and characters of the reference. No text, letters, numbers, logos or watermark. Not photorealistic.",
+    "reference_file_paths": [
+      "C:\\Users\\Shane\\epicaimegajam\\devlog\\img\\12-coverage-closeup.png"
+    ],
+    "aspect_ratio": "3:2",
+    "response_format": "json"
+  }
+]
