@@ -86,8 +86,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float TileSize = 100.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float HopHeight = 38.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FigureHeight = 108.f;
-	/** Yaw that turns an imported figurine so its face points along +X (the engine's forward). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FigureYaw = 90.f;
+	/** Yaw that turns an imported figurine so its face points along +X (the engine's forward). The Meshy figurines face
+	 *  -Y after import, so -90; at +90 every figure stood back to front and guards seemed to catch ACE behind them. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FigureYaw = -90.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float CarYaw = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float LampYaw = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MegaJam") float FlatHeightScale = 0.85f;
