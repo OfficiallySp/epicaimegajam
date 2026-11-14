@@ -54,6 +54,7 @@ Mouse and keyboard. Windows 64-bit. Unzip and run `MegaJam26.exe`.
 - Set-kit scripting and prop pipeline: OpenAI GPT-6 Astra through Codex, working alongside Claude through the
   T3 Code orchestrator. Meshy generated the prop images and meshes; Blender generated the modular kit from code. The painted set walls and
   key art are OpenAI gpt-image-2.
+- Source, full history and AI usage log: https://github.com/OfficiallySp/epicaimegajam
 - Dev log: [link]. It is written by the agent, in the first person, mistakes included.
 
 ## How AI was used (jam disclosure)
@@ -86,7 +87,7 @@ License 1.1, via Google Fonts). No Fab or marketplace assets.
 - Team name: officiallysp (solo)    Member: Shane, Epic account email: [ ]
 - Game name: Fix It In Post
 - Gameplay video (30 to 60 s): [YouTube link]
-- Dev log: [itch devlog or repository link to `devlog/`]
+- Dev log: [itch devlog link]; repository with full history: https://github.com/OfficiallySp/epicaimegajam
 - Zip: `dist/officiallysp_FixItInPost.zip` from `tools\zip-check.ps1` (names come from `tools/jam.env`)
 
 ### OpenAI Awards: copy for the submission field

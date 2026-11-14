@@ -44,7 +44,7 @@ submission by Sun 15 Nov 19:00 GMT (hard deadline Mon 16 Nov 01:59).
 
 ## Decisions taken (14 Nov, 13:30)
 - Meshy credits approved. A2 delegated to Codex / GPT-6 Astra (cap 200 credits): gpt-image-2 backdrop atlases and key art.
-- Repo goes public for Glass Box once Shane confirms the commit author email may be visible (history scanned: no keys).
+- Repo public since 14 Nov 20:00 (history scanned: no keys; Shane OK'd the commit email): https://github.com/OfficiallySp/epicaimegajam
 - DLSS: Shane unsure. Project moved to the UE 5.9 MegaJam Preview; NVIDIA's plugin targets released engine versions,
   so check for a 5.9 build first; without one, skip.
 
