@@ -943,11 +943,11 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 		case EMJAct::Move: Tip = C.Beats > 1 ? FString::Printf(TEXT("Runs %d tiles %s, one per beat"), C.Beats, Dir) : FString::Printf(TEXT("Steps one tile %s"), Dir); break;
 		case EMJAct::Wait: Tip = C.Beats > 1 ? FString::Printf(TEXT("Stands still for %d beats"), C.Beats) : FString(TEXT("Stands still for one beat")); break;
 		case EMJAct::Look: Tip = FString::Printf(TEXT("Turns to face %s (guards see three tiles ahead)"), Dir); break;
-		case EMJAct::Use: Tip = TEXT("Uses what is on this tile: pulls the lever or grabs the prize"); break;
-		case EMJAct::Attack: Tip = TEXT("Knocks out whoever stands on the tile in front"); break;
+		case EMJAct::Use: Tip = TEXT("Pulls the lever or grabs the prize on this tile"); break;
+		case EMJAct::Attack: Tip = TEXT("Knocks out whoever is on the tile ahead"); break;
 		case EMJAct::Chan: Tip = (C.Param & 0x100) ? TEXT("Switches the lasers off") : TEXT("Switches the lasers back on"); break;
 		}
-		if (!MJ::CanEditClip(Lv, D->Edit, HoverT, HoverI)) Tip += TEXT("   -   locked by the studio");
+		if (!MJ::CanEditClip(Lv, D->Edit, HoverT, HoverI)) Tip += TEXT("   -   locked");
 		FVector2f Pos, Size;
 		ClipRect(L, HoverT, HoverI, Pos, Size);
 		const FSlateFontInfo TF = P.Font(15.f, TEXT("Regular"));
@@ -1053,7 +1053,7 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		}
 		else
 		{
-			const TCHAR* Tip = D->FailCount >= 2 ? TEXT("Click or press SPACE to keep editing.   Stuck? Press H for a hint.") : TEXT("Click or press SPACE to get back to the cutting room");
+			const TCHAR* Tip = D->FailCount >= 2 ? TEXT("Click or press SPACE to keep editing.   Stuck? Press H.") : TEXT("Click or press SPACE to keep editing");
 			P.Text(Tip, Mid + FVector2f(0.f, 170.f), P.Font(16.f, TEXT("Regular")), Fade(D->FailCount >= 2 ? ColText : ColDim, K), 0.5f, 0.5f);
 		}
 	}
@@ -1158,7 +1158,7 @@ void SMJHud::PaintTitle(FMJPaint& P, const FLayout& L) const
 
 	const FSlateFontInfo Body = P.Font(21.f, TEXT("Regular"));
 	P.Text(TEXT("The studio butchered your spy movie."), FVector2f(X + 4.f, 604.f), Body, Fade(ColText, K));
-	P.Text(TEXT("Sneak into the cutting room and recut it before the premiere."), FVector2f(X + 4.f, 634.f), Body, Fade(ColText, K));
+	P.Text(TEXT("Recut it before the premiere."), FVector2f(X + 4.f, 634.f), Body, Fade(ColText, K));
 
 	const bool bStarted = D->TotalStars() > 0;
 	Button(P, TEXT("play"), FVector2f(X, 708.f), FVector2f(360.f, 68.f), bStarted ? TEXT("CONTINUE") : TEXT("START THE CUT"), ColAmber, true, TEXT("SPACE"));
@@ -1188,13 +1188,13 @@ void SMJHud::PaintCredits(FMJPaint& P, const FLayout& L) const
 
 	P.Star(Mid + FVector2f(-70.f, 420.f), 26.f, ColAmber);
 	P.Text(FString::Printf(TEXT("%d / %d"), D->TotalStars(), D->MaxStars()), Mid + FVector2f(-30.f, 420.f), P.Font(40.f), ColText, 0.f, 0.5f);
-	if (D->TotalStars() < D->MaxStars()) P.Text(TEXT("Every scene has a par and most have a studio note. Recut them from SCENES."), Mid + FVector2f(0.f, 474.f), P.Font(17.f, TEXT("Regular")), ColDim, 0.5f, 0.5f);
+	if (D->TotalStars() < D->MaxStars()) P.Text(TEXT("Missed stars? Replay any scene from SCENES."), Mid + FVector2f(0.f, 474.f), P.Font(17.f, TEXT("Regular")), ColDim, 0.5f, 0.5f);
 
 	static const TCHAR* Lines[] = {
 		TEXT("FIX IT IN POST"),
 		TEXT("Directed by Shane"),
-		TEXT("Design, code, levels and edit: Claude (Anthropic), working in Unreal Engine 5.8 through Unreal MCP"),
-		TEXT("Figurines and props: generated with Meshy      Audio: generated with fal"),
+		TEXT("Design, code and levels: Claude (Anthropic), in Unreal Engine 5.8 via Unreal MCP"),
+		TEXT("Figurines and props: Meshy      Audio: fal"),
 		TEXT("No actors were harmed. Several were cut."),
 	};
 	float Y = 560.f;

@@ -67,3 +67,6 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
 - 2026-11-14 02:00–02:20 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · Shane's playtest bug "guards
   face the opposite way": diagnosed from PIE screenshots, one-line fix (`FigureYaw` -90), rebuild, re-check, package;
   licence check of the two fal audio models (both show "Commercial use") · all kept · no human code
+- 2026-11-14 11:00–11:35 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · Shane asked for less verbose wording without
+  AI-isms: day 3 dev log, plus in-game level notes, hints, tooltips, toasts, failure line, title and credits text · all
+  kept · no human code

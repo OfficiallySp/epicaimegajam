@@ -404,7 +404,7 @@ namespace MJ
 		case EMJOutcome::OutOfFilm:
 		default:
 			if (L.bNeedItem && !R.States.Last().bItemTaken) return TEXT("The film ran out and nobody took the prize.");
-			return TEXT("The film ran out before the scene paid off.");
+			return FString::Printf(TEXT("The film ran out before %s reached the mark."), *Name(L.StarIndex()));
 		}
 	}
 

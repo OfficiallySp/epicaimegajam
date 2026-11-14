@@ -400,7 +400,7 @@ bool AMJDirector::Commit(const FMJEditState& Before, bool bChanged, const TCHAR*
 	if (MJ::EditCost(Level, Edit) > Level.MaxEdits)
 	{
 		Edit = Before;
-		Say(FString::Printf(TEXT("Out of edits: the studio allows %d here. Undo something first."), Level.MaxEdits));
+		Say(FString::Printf(TEXT("Out of edits (%d allowed). Undo one first."), Level.MaxEdits));
 		Sfx(TEXT("denied"));
 		return false;
 	}
@@ -431,7 +431,7 @@ bool AMJDirector::DoMove(int32 Track, int32 From, int32 To)
 	const FMJEditState Before = Edit;
 	if (Edit.Tracks.IsValidIndex(Track) && FMath::Clamp(To, 0, Edit.Tracks[Track].Num() - 1) == From) return false; // dropped where it was: not an error
 	const bool bOk = MJ::Move(Level, Edit, Track, From, To);
-	const TCHAR* Why = !MJ::CanEditClip(Level, Before, Track, From) ? TEXT("Locked by the studio.") : TEXT("No splicing in this reel yet: you can only cut.");
+	const TCHAR* Why = !MJ::CanEditClip(Level, Before, Track, From) ? TEXT("Locked by the studio.") : TEXT("No splicing yet. This reel is cuts only.");
 	if (!Commit(Before, bOk, Why)) return false;
 	Sfx(TEXT("splice"));
 	return true;
@@ -442,7 +442,7 @@ bool AMJDirector::DoInsert(int32 BinIndex, int32 Track, int32 At)
 	if (Phase != EMJPhase::Edit) return false;
 	const FMJEditState Before = Edit;
 	const bool bOk = MJ::Insert(Level, Edit, BinIndex, Track, At);
-	if (!Commit(Before, bOk, TEXT("That clip belongs to a different strip."))) return false;
+	if (!Commit(Before, bOk, TEXT("That clip goes on a different strip."))) return false;
 	Sfx(TEXT("restore"));
 	return true;
 }
@@ -518,7 +518,7 @@ void AMJDirector::Hint()
 		{
 			if (HasUid(HintTarget.Tracks[t], C.Uid)) continue;
 			HintUid = C.Uid;
-			HintText = C.Orig >= 0 ? FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("%s does not belong in %s's strip. Put it back."), *ClipName(C), *Level.Actors[t].Name);
+			HintText = C.Orig >= 0 ? FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("%s doesn't belong in %s's strip. Take it out."), *ClipName(C), *Level.Actors[t].Name);
 			return;
 		}
 	}
@@ -528,7 +528,7 @@ void AMJDirector::Hint()
 		{
 			if (HasUid(Edit.Tracks[t], C.Uid)) continue;
 			HintUid = C.Uid;
-			HintText = C.Orig >= 0 ? FString::Printf(TEXT("%s should still be in %s's strip. Undo that cut."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("Restore %s into %s's strip from the deleted scenes."), *ClipName(C), *Level.Actors[t].Name);
+			HintText = C.Orig >= 0 ? FString::Printf(TEXT("%s belongs in %s's strip. Undo that cut."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("Restore %s to %s's strip from DELETED SCENES."), *ClipName(C), *Level.Actors[t].Name);
 			return;
 		}
 	}
@@ -539,11 +539,11 @@ void AMJDirector::Hint()
 			if (SameClip(Edit.Tracks[t][i], HintTarget.Tracks[t][i])) continue;
 			const FMJClip& Want = HintTarget.Tracks[t][i];
 			HintUid = Want.Uid;
-			HintText = FString::Printf(TEXT("In %s's strip, %s should be clip number %d."), *Level.Actors[t].Name, *ClipName(Want), i + 1);
+			HintText = FString::Printf(TEXT("%s should be clip %d on %s's strip."), *ClipName(Want), i + 1, *Level.Actors[t].Name);
 			return;
 		}
 	}
-	HintText = TEXT("So close. Scrub the playhead and watch where it goes wrong.");
+	HintText = TEXT("Almost. Scrub the playhead to see where it goes wrong.");
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ title The Laser Hall
 reel 1
 slug INT. LASER HALL - NIGHT
 script ACE crosses the hall while the laser grid is down.
-note The grid has a strip too. ACE may only stand on the lasers while its strip says OFF.
+note The grid has a strip too. ACE can only cross while it says OFF.
 map
 ###########
 #1...L...X#
@@ -57,7 +57,7 @@ endmap
 actor star ACE e | e z2=SELFIE e e z=COMB_HAIR e e e e e
 actor prop LASER_GRID s locked | z3=ON c0+=OFF z=OFF c0-=ON z5=ON
 rules edits=2 par=1 tools=cut
-bonus maxbeats 8 | Tight edit: the scene runs 8 beats or less
+bonus maxbeats 8 | Tight edit: the scene runs 8 beats or fewer
 end
 
 level r1s3
@@ -100,7 +100,7 @@ title The Diamond
 reel 1
 slug INT. JEWEL ROOM - NIGHT
 script ACE lifts the diamond while the guard dozes, and walks out with it.
-note Not every pause is padding. The guard peers in on a schedule.
+note Some pauses matter. The guard looks in on a schedule.
 map
 ###########
 #1...*...X#
@@ -119,7 +119,7 @@ title The Vault
 reel 1
 slug INT. VAULT - NIGHT
 script ACE beats the lasers, takes the diamond and slips out past the last guard.
-note Three strips, one scene. Work out who has to be where on each beat.
+note Three strips. Work out who needs to be where, beat by beat.
 map
 #############
 #1..L..*..X##
@@ -131,7 +131,7 @@ actor guard GUARD s | z5=NAP ln=WAKE z7=GLARE ls=DOZE z3=NAP
 actor prop LASER_GRID s locked | z3=ON c0+=OFF c0-=ON z9=ON
 rules edits=3 par=2 tools=cut
 needitem
-bonus maxbeats 11 | Tight edit: the scene runs 11 beats or less
+bonus maxbeats 11 | Tight edit: the scene runs 11 beats or fewer
 end
 )MJ",
 
@@ -160,7 +160,7 @@ title Pull
 reel 2
 slug INT. CONTROL ROOM - NIGHT
 script ACE pulls the lever, the door opens, ACE leaves.
-note USE works on whatever ACE is standing on when the clip plays.
+note USE acts on the tile ACE is standing on.
 map
 #########
 #1.p.D.X#
@@ -175,7 +175,7 @@ title Sucker Punch
 reel 2
 slug INT. LONG CORRIDOR - NIGHT
 script ACE creeps up while the goon checks his phone, and puts him to sleep.
-note A PUNCH knocks out whoever stands right in front of ACE. Guards see three tiles ahead.
+note PUNCH knocks out whoever is right in front of ACE. Guards see three tiles ahead.
 map
 ##########
 #1....2.X#
@@ -202,7 +202,7 @@ endmap
 actor star ACE n | z2=STRETCH z3=PEP_TALK n n e e a=PUNCH e e e e e
 actor guard GOON w locked | z2=IDLE w=PATROL ln=SNIFF z3=LISTEN e=PATROL le=STARE z6=STARE
 rules edits=2 par=1 tools=cut,move
-bonus maxbeats 12 | Tight edit: the scene runs 12 beats or less
+bonus maxbeats 12 | Tight edit: the scene runs 12 beats or fewer
 end
 
 level r2s5
@@ -229,7 +229,7 @@ title Two Man Job
 reel 2
 slug INT. TWIN CORRIDORS - NIGHT
 script ACE holds the switch for PIP. PIP kills the lasers for ACE. ACE takes the diamond.
-note Two strips to fix. Each of them needs the other one's timing.
+note Two strips to fix, and each depends on the other's timing.
 map
 ###########
 #1.d..M.*X#
@@ -268,7 +268,7 @@ title The Monologue
 reel 3
 slug INT. THE BARON'S LAIR - NIGHT
 script The BARON talks too long. ACE is gone before the trap springs.
-note The Baron's lines are contractual: they cannot be cut or moved. But the studio did delete one.
+note The Baron's contract says his lines can't be cut or moved. The studio deleted one anyway.
 map
 ###########
 #1....L..X#
@@ -309,7 +309,7 @@ title Pip's Big Scene
 reel 3
 slug INT. THE BARON'S STUDY - NIGHT
 script PIP gets the drop on the BARON. ACE strolls out over him.
-note The studio deleted the sidekick's only heroic moment. A punch only lands on the tile in front.
+note The studio deleted PIP's one heroic moment. A punch only hits the tile in front.
 map
 ###########
 #1.....3.X#
@@ -329,7 +329,7 @@ title Smile For The Camera
 reel 3
 slug INT. THE BARON'S GALLERY - NIGHT
 script ACE walks in under the camera, takes the diamond and walks out the way he came.
-note The camera's sweep is hard-wired, clip for clip. Two of its deleted scenes survive. Line the strips up.
+note The camera's sweep is locked. Two of its deleted clips survive. Line the strips up.
 map
 #########
 #X1...*.#
@@ -348,7 +348,7 @@ title The Showdown
 reel 3
 slug INT. THE BARON'S VAULT - NIGHT
 script ACE beats the trap, PIP holds the door, and ACE walks out with the diamond.
-note The last scene. Every tool, every strip.
+note The final scene. All three tools are yours.
 map
 #############
 #1..L..E..*X#
