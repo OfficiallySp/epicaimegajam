@@ -51,8 +51,8 @@ try {
   startedPlay = false;
   const after = await call(editor, 'IsPIERunning');
   if (after.returnValue !== false) throw new Error('PIE did not stop.');
-  await call('EditorToolset.LogsToolset', 'GetLogEntries', {
-    category: 'LogPlayLevel', pattern: '.', maxEntries: 12
+  await call('ConsoleToolset.LogsToolset', 'GetLogEntries', {
+    logCategory: 'LogPlayLevel', pattern: '.', maxEntries: 12
   });
   const newLines = (await readFile(logPath, 'utf8')).split('\n').slice(baseline);
   report.errors = newLines.filter(line => /\]Log[^:]+:\s*(Error|Fatal):/.test(line));

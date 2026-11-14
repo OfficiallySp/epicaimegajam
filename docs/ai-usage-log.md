@@ -90,3 +90,7 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   Preview: trial on a worktree copy first, then main (uproject, renamed MCP settings section, tools/jam.env, CLAUDE.md);
   editor target 0 errors, Win64 cook 0 errors/0 warnings, all 18 scenes opened and screened in the packaged build
   (offscreen, console commands) with a screenshot each; new log noise is only ToolsetRegistry "no baked manifest" · all kept
+- 2026-11-14 14:25–15:00 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · UE 5.9 web (Wasm) build attempt in the `ue59`
+  worktree, following the engine's shipped web-deploy agent skill: emscripten 6.0.10, AI toolsets off for the cook, Development
+  build cooks 0 errors and boots in Edge (READY 10.1 s, deferred tier) with a working HUD but a black 3D view; parked at the
+  time box. Also: unreal-smoke.mjs moved to ConsoleToolset.LogsToolset (5.9 rename); dev log section · kept on `ue59`
