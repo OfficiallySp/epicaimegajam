@@ -59,3 +59,11 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   scenes designed against the brute-force solver, kit-based set builder with per-reel looks and tilt-shift depth of
   field, briefs for three sub-agents, import of their output, recovery after a system restore (`git fsck`, LFS check,
   rebuild, shell MCP client) · all kept · no human code
+- 2026-11-13 08:40–23:30 GMT · Claude Fable 5.2 (Claude Code in T3 Code) + Unreal MCP · star chimes and projector
+  whirr, itch page copy, OFL fonts, close-up coverage camera on winning screenings, F10 in-engine screenshot and
+  black-footage guard, clip tooltips and reel cards, laser stubs, hint solver on a worker thread, graphics toggle,
+  Reel 3 scenes 5 and 6 (solver-verified), 58 s draft gameplay video, in-engine F8 video recorder (experimental, not
+  shipped as a feature) · all kept except the recorder, still under test · no human code
+- 2026-11-14 02:00–02:20 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · Shane's playtest bug "guards
+  face the opposite way": diagnosed from PIE screenshots, one-line fix (`FigureYaw` -90), rebuild, re-check, package;
+  licence check of the two fal audio models (both show "Commercial use") · all kept · no human code
