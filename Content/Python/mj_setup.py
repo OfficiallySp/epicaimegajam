@@ -179,6 +179,82 @@ def create_backdrop(force=False):
     return "M_Backdrop created"
 
 
+def import_surfaces(src_dir="C:/Users/Shane/epicaimegajam/assets/src/surfaces"):
+    """Import the tileable surface textures (tools/make_surfaces.py) as /Game/MegaJam26/Environment/T_Surface_<Name>."""
+    import glob
+    import os
+    tasks = []
+    for f in sorted(glob.glob(src_dir + "/T_Surface_*.png")):
+        task = unreal.AssetImportTask()
+        task.set_editor_property("filename", f.replace("\\", "/"))
+        task.set_editor_property("destination_path", "/Game/MegaJam26/Environment")
+        task.set_editor_property("destination_name", os.path.splitext(os.path.basename(f))[0])
+        task.set_editor_property("automated", True)
+        task.set_editor_property("replace_existing", True)
+        task.set_editor_property("save", True)
+        tasks.append(task)
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks(tasks)
+    return f"{len(tasks)} surface textures imported"
+
+
+def create_surface(force=False):
+    """Lit tiled texture: Tex, Tint, Gain, Strength (0 = plain Tint), Rough, Tiling (mesh UVs),
+    UseWorld (1 = project world XY instead of mesh UVs) and WorldSize (world units per repeat)."""
+    mat = _new_material("M_Surface", force)
+    if mat is None:
+        return "M_Surface exists"
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
+    mat.set_editor_property("used_with_nanite", True)
+    uv = _mel.create_material_expression(mat, unreal.MaterialExpressionTextureCoordinate, -1300, -100)
+    tiling = _scalar(mat, "Tiling", 1.0, -1300, 0)
+    uv_mesh = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -1100, -60)
+    _mel.connect_material_expressions(uv, "", uv_mesh, "A")
+    _mel.connect_material_expressions(tiling, "", uv_mesh, "B")
+    wp = _mel.create_material_expression(mat, unreal.MaterialExpressionWorldPosition, -1300, 140)
+    mask = _mel.create_material_expression(mat, unreal.MaterialExpressionComponentMask, -1100, 140)
+    mask.set_editor_property("r", True)
+    mask.set_editor_property("g", True)
+    mask.set_editor_property("b", False)
+    mask.set_editor_property("a", False)
+    _mel.connect_material_expressions(wp, "", mask, "")
+    world_size = _scalar(mat, "WorldSize", 400.0, -1300, 260)
+    uv_world = _mel.create_material_expression(mat, unreal.MaterialExpressionDivide, -900, 160)
+    _mel.connect_material_expressions(mask, "", uv_world, "A")
+    _mel.connect_material_expressions(world_size, "", uv_world, "B")
+    use_world = _scalar(mat, "UseWorld", 0.0, -900, 300)
+    uv_pick = _mel.create_material_expression(mat, unreal.MaterialExpressionLinearInterpolate, -700, 40)
+    _mel.connect_material_expressions(uv_mesh, "", uv_pick, "A")
+    _mel.connect_material_expressions(uv_world, "", uv_pick, "B")
+    _mel.connect_material_expressions(use_world, "", uv_pick, "Alpha")
+    tex = _mel.create_material_expression(mat, unreal.MaterialExpressionTextureSampleParameter2D, -500, 0)
+    tex.set_editor_property("parameter_name", "Tex")
+    default_tex = _eal.load_asset("/Game/MegaJam26/Environment/T_Surface_Scenic")
+    if default_tex:
+        tex.set_editor_property("texture", default_tex)
+    _mel.connect_material_expressions(uv_pick, "", tex, "UVs")
+    gain = _scalar(mat, "Gain", 1.0, -500, 260)
+    boosted = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -300, 60)
+    _mel.connect_material_expressions(tex, "RGB", boosted, "A")
+    _mel.connect_material_expressions(gain, "", boosted, "B")
+    one = _mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -300, -60)
+    one.set_editor_property("r", 1.0)
+    strength = _scalar(mat, "Strength", 1.0, -300, 220)
+    detail = _mel.create_material_expression(mat, unreal.MaterialExpressionLinearInterpolate, -120, 40)
+    _mel.connect_material_expressions(one, "", detail, "A")
+    _mel.connect_material_expressions(boosted, "", detail, "B")
+    _mel.connect_material_expressions(strength, "", detail, "Alpha")
+    tint = _vec(mat, "Tint", (1.0, 1.0, 1.0, 1.0), -120, 220)
+    color = _mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, 60, 80)
+    _mel.connect_material_expressions(detail, "", color, "A")
+    _mel.connect_material_expressions(tint, "", color, "B")
+    rough = _scalar(mat, "Rough", 0.7, 60, 260)
+    _mel.connect_material_property(color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    _mel.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    _mel.recompile_material(mat)
+    _eal.save_loaded_asset(mat)
+    return "M_Surface created"
+
+
 def run(force=False):
     out = [create_solid(force), create_glow(force), create_stage_map()]
     print("; ".join(out))

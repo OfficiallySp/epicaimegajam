@@ -27,6 +27,7 @@ their license, and (C) the AI tools used. Keep this file current in the same com
 | Three music tracks (edit, screening, title) | fal, elevenlabs/music/v2.5 (instrumental) | 1960s spy-caper heist jazz, about 100 bpm, D minor; prompts in assets/src/audio/manifest.md | fal model page (fal.ai/models/elevenlabs/music/v2.5) shows the "Commercial use" badge; output terms per fal's Terms of Service (checked 13 Nov 2026) | all game audio (see assets/src/audio/manifest.md)|
 
 | Set backdrops: 12 painted wall flats (museum, alley, lair) and the key art / alternate cover | OpenAI gpt-image-2 via Meshy text-to-image and image-to-image, directed by Codex / GPT-6 Astra; assembled by `tools/assemble_backdrops.py` | Painted theatre wall flats for a 1960s spy-caper diorama; invented paintings, no text or logos; key art restyles our own in-game frame. Prompts and task ids in assets/src/backdrops/README.md | Meshy Terms of Use 2.4 / 3.2: paid-plan customers own their output; Meshy image page: full commercial rights on paid plans (checked 14 Nov 2026) | every set wall; itch cover option |
+| Three surface textures: walnut wood, scenic paint, limestone | OpenAI gpt-image-2 via Meshy text-to-image (run by Codex / GPT-6 Astra); made tileable by `tools/make_surfaces.py` | Seamless flat-lit tileable textures; prompts and task ids in assets/src/surfaces/README.md | as the backdrops row (checked 14 Nov 2026) | desk, plinth, wall blocks, floor tiles |
 | Nine props: camera, car, diamond, clapper, reel, lamp, mug, scissors, filmcan | Meshy (nano-banana-pro image, meshy-t2.5 + meshy-7 texture) | Toy set props and photoreal film-editor desk objects; prompts in assets/src/props/README.md | not yet checked | desk dressing and set props |
 | Baron villain figurine | Meshy (nano-banana-pro image, meshy-t2.5 + meshy-7 texture) | Existing villain toy figurine downloaded without regeneration | not yet checked | desk dressing and set props |
 
@@ -44,4 +45,4 @@ their license, and (C) the AI tools used. Keep this file current in the same com
 | Meshy (nano-banana-pro images, meshy-t2.5 geometry, meshy-7 textures) | figurines and props |
 | fal (sonilo/v1.1 sound effects, elevenlabs/music/v2.5) | all sound effects and music |
 | Blender 5.2 (scripted, headless) | modular set kit |
-| OpenAI gpt-image-2 (via Meshy, directed by Codex / GPT-6 Astra, 14 Nov) | the painted set backdrops and key art |
+| OpenAI gpt-image-2 (via Meshy, directed by Codex / GPT-6 Astra, 14 Nov) | the painted set backdrops, key art and the desk / wall / floor surface textures |

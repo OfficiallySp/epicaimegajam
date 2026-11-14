@@ -373,14 +373,33 @@ void AMJStage::Build(const FMJLevelDef& L)
 	SetRoot->RegisterComponent();
 
 	const FReelLook& Look = ReelLook(L.Reel);
-	UMaterialInstanceDynamic* Wood = Solid(FLinearColor(0.11f, 0.065f, 0.04f), 0.5f);
-	UMaterialInstanceDynamic* DeskWood = Solid(FLinearColor(0.19f, 0.105f, 0.055f), 0.42f);
+	// big surfaces get a faint tiled texture (gpt-image-2, tools/make_surfaces.py) under the same colour they always had;
+	// the textures are normalised to a mean of 0.5, so Gain 2 keeps the average colour and Strength only sets how much
+	// grain shows. WorldSize > 0 projects world XY (continuous across pieces), otherwise mesh UVs. Plain paint if missing.
+	UMaterialInterface* SurfaceBase = LoadQuiet<UMaterialInterface>(TEXT("/Game/MegaJam26/Materials/M_Surface.M_Surface"));
+	auto Surface = [this, SurfaceBase](const TCHAR* Name, const FLinearColor& Tint, float Rough, float Strength, float WorldSize) -> UMaterialInterface*
+	{
+		UTexture* Tex = SurfaceBase ? LoadQuiet<UTexture>(*FString::Printf(TEXT("/Game/MegaJam26/Environment/T_Surface_%s.T_Surface_%s"), Name, Name)) : nullptr;
+		if (!Tex) return Solid(Tint, Rough);
+		UMaterialInstanceDynamic* M = UMaterialInstanceDynamic::Create(SurfaceBase, this);
+		M->SetTextureParameterValue(TEXT("Tex"), Tex);
+		M->SetVectorParameterValue(TEXT("Tint"), Tint);
+		M->SetScalarParameterValue(TEXT("Rough"), Rough);
+		M->SetScalarParameterValue(TEXT("Gain"), 2.f);
+		M->SetScalarParameterValue(TEXT("Strength"), Strength);
+		M->SetScalarParameterValue(TEXT("UseWorld"), WorldSize > 0.f ? 1.f : 0.f);
+		M->SetScalarParameterValue(TEXT("WorldSize"), FMath::Max(WorldSize, 1.f));
+		Mats.Add(M);
+		return M;
+	};
+	UMaterialInterface* Wood = Surface(TEXT("Wood"), FLinearColor(0.11f, 0.065f, 0.04f), 0.5f, 0.7f, 260.f);
+	UMaterialInterface* DeskWood = Surface(TEXT("Wood"), FLinearColor(0.19f, 0.105f, 0.055f), 0.42f, 0.8f, 420.f);
 	UMaterialInstanceDynamic* Metal = Solid(FLinearColor(0.55f, 0.55f, 0.58f), 0.28f, 0.f, 1.f);
 	UMaterialInstanceDynamic* Dark = Solid(FLinearColor(0.035f, 0.035f, 0.045f), 0.45f);
-	UMaterialInstanceDynamic* FloorA = Solid(Look.FloorA, 0.72f);
-	UMaterialInstanceDynamic* FloorB = Solid(Look.FloorB, 0.72f);
+	UMaterialInterface* FloorA = Surface(TEXT("Stone"), Look.FloorA, 0.72f, 0.85f, 230.f);
+	UMaterialInterface* FloorB = Surface(TEXT("Stone"), Look.FloorB, 0.72f, 0.85f, 230.f);
 	UMaterialInstanceDynamic* FloorTrim = Solid(Look.FloorTrim, 0.6f);
-	UMaterialInstanceDynamic* WallPaint = Solid(Look.Wall, 0.8f);
+	UMaterialInterface* WallPaint = Surface(TEXT("Scenic"), Look.Wall, 0.8f, 1.0f, 0.f);
 	UMaterialInstanceDynamic* WallTrim = Solid(Look.WallTrim, 0.7f);
 	// the flats carry a painted atlas (four panels per reel, tools/make_backdrops.py); plain paint if it is missing
 	UMaterialInterface* Backdrop = Solid(Look.Backdrop, 0.85f);
