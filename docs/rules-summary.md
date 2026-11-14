@@ -16,7 +16,7 @@ Announcement supplied by Shane on 11 November 2026:
 - Check the PDF for restricted countries and student or employee rules.
 
 ## Engine
-- Unreal Engine **or** UEFN, not both. We use Unreal Engine 5.8.4 on Windows.
+- Unreal Engine **or** UEFN, not both. We use the Unreal Engine 5.9 MegaJam Preview on Windows (moved from 5.8.4 on 14 Nov).
 
 ## Before the jam opens
 - Setting up tools, agents and MCP ahead of time is explicitly encouraged ("getting MCP working on day one costs build time").

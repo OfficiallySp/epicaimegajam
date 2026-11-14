@@ -1,4 +1,4 @@
-# MegaJam26 — 2026 Epic AI MegaJam entry (Unreal Engine 5.8.4, C++ + Blueprints, solo)
+# MegaJam26 — 2026 Epic AI MegaJam entry (Unreal Engine 5.9 MegaJam Preview, C++ + Blueprints, solo)
 
 Solo entry by Shane, who is new to Unreal. This repo root **is** the Unreal project root: `MegaJam26.uproject`,
 the configured `.mcp.json` and this file all live here, and `claude` is launched from here so they load.
@@ -54,8 +54,8 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
 
 ## Machines
 - **PC, Framework Desktop (Ryzen AI Max+ 395, Radeon 8060S, 64 GB, Windows 11):** engine, editor, Unreal MCP, packaging.
-  Engine: `C:\Users\Shane\Epic Games\UE_5.8`. Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
-  Compiler: Visual Studio 2026 with the **MSVC 14.50** toolset (5.8's recommended version; 14.51 fails on engine headers).
+  Engine: `C:\Users\Shane\Epic Games\UE_5.9` (UE 5.9 MegaJam Preview since 14 Nov; 5.8.4 stays installed at `UE_5.8` as the fallback). Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
+  Compiler: Visual Studio 2026 with the **MSVC 14.50** toolset (14.50.35739; 5.9 bans 14.51 and 14.50 builds older than 35723).
 - **Mac mini (M4, 16 GB):** docs, dev log, scripts, video editing, itch uploads, second Claude window. No engine installed.
 
 ## Project conventions
@@ -98,7 +98,7 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
 9. **Do not touch:** `Saved/`, `Intermediate/`, `Binaries/`, `DerivedDataCache/` (gitignored); renderer and platform
    sections of `Config/DefaultEngine.ini` unless the task is about them; originals under `Content/External/`.
 
-## Commands (PowerShell on the PC, from the repo root; `$UE = 'C:\Users\Shane\Epic Games\UE_5.8'`)
+## Commands (PowerShell on the PC, from the repo root; `$UE = 'C:\Users\Shane\Epic Games\UE_5.9'`)
 ```powershell
 # Full editor build (editor closed)
 & "$UE\Engine\Build\BatchFiles\Build.bat" MegaJam26Editor Win64 Development -Project="$PWD\MegaJam26.uproject" -WaitMutex
@@ -118,7 +118,7 @@ Editor console (`~`): `ModelContextProtocol.GenerateClientConfig ClaudeCode` wri
 In Claude Code, `/mcp` shows whether the Unreal server is connected.
 The default tool-search mode exposes `list_toolsets`, `describe_toolset`, and `call_tool` for 52 toolsets.
 `node tools/mcp/unreal-smoke.mjs` verifies a ten-second PIE session and Output Log access; run it with no other MCP client.
-Claude's optional `server/discover` health probe is unsupported by UE 5.8.4 and may log an error before normal initialization;
+Claude's optional `server/discover` health probe is unsupported by UE 5.8.4 (not rechecked on 5.9) and may log an error before normal initialization;
 distinguish that client-probe line from gameplay errors. See `docs/agent-setup.md` for verified setup details.
 
 ## Claude Code session defaults (Shane's usage plan)

@@ -86,3 +86,7 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
 - 2026-11-14 12:42–13:00 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · PIE checks of the review
   fixes (rewatch keeps the cut, hint with no edits left, hint before the solve is done, same-scene reload, identical
   clips), team name `officiallysp` in `tools/jam.env` and the itch page draft, final package and zip · all kept
+- 2026-11-14 12:45–14:25 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · moved the project to the UE 5.9 MegaJam
+  Preview: trial on a worktree copy first, then main (uproject, renamed MCP settings section, tools/jam.env, CLAUDE.md);
+  editor target 0 errors, Win64 cook 0 errors/0 warnings, all 18 scenes opened and screened in the packaged build
+  (offscreen, console commands) with a screenshot each; new log noise is only ToolsetRegistry "no baked manifest" · all kept
