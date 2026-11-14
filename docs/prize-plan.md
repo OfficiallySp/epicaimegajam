@@ -16,7 +16,7 @@ submission by Sun 15 Nov 19:00 GMT (hard deadline Mon 16 Nov 01:59).
 | Rodin cash pool ($10k split) | only if Rodin is used and listed | not used | one Rodin-made prop in the game, list Rodin in "Tools you used" (A4) |
 | Meshy / Tripo all-category prizes | automatic for any winner | n/a | nothing to do |
 | PBRgen (Render Royalty partner) | automatic for that winner | n/a | optional: one PBRgen material (desk wood) |
-| Best Student | only if Shane is enrolled at a higher-education institution | unknown | Shane to confirm |
+| Best Student | no (Shane is not enrolled) | n/a | n/a |
 | Pocket Powerhouse (+ OpenAI) | no | skip | mobile build: Android toolchain, touch UI, perf; would threaten the main submission |
 | Best Team, Best UEFN, Walkie-Talkie | no | n/a | solo / UEFN-only |
 
@@ -40,7 +40,13 @@ submission by Sun 15 Nov 19:00 GMT (hard deadline Mon 16 Nov 01:59).
    Graphics option shown only on RTX hardware, TSR elsewhere; package and check the fallback on the Radeon PC.
    Timebox 45 min; revert if packaging breaks. Honest disclosure: "integrated, untested on RTX hardware" unless
    someone with an RTX card runs the build. Worth it: the prize goes to the best qualifying entry, not the winner.
-2. **Student status.** If enrolled: tick it on the form; nothing else changes.
+2. ~~Student status~~: not a student (Shane, 14 Nov).
+
+## Decisions taken (14 Nov, 13:30)
+- Meshy credits approved. A2 delegated to Codex / GPT-6 Astra (cap 200 credits): gpt-image-2 backdrop atlases and key art.
+- Repo goes public for Glass Box once Shane confirms the commit author email may be visible (history scanned: no keys).
+- DLSS: Shane unsure. Project moved to the UE 5.9 MegaJam Preview; NVIDIA's plugin targets released engine versions,
+  so check for a 5.9 build first; without one, skip.
 
 ## Schedule (Claude: about 1 h per 5 h window)
 - Sat 13:00: this plan; delegate A2 (Codex) and A4 (Codex, has Rodin OAuth) in parallel.
