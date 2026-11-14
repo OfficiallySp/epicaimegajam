@@ -86,3 +86,7 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
 - 2026-11-14 12:42–13:00 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · PIE checks of the review
   fixes (rewatch keeps the cut, hint with no edits left, hint before the solve is done, same-scene reload, identical
   clips), team name `officiallysp` in `tools/jam.env` and the itch page draft, final package and zip · all kept
+- 2026-11-14 12:45–13:10 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · UE 5.9 MegaJam Preview trial on a copy (git
+  worktree, branch `ue59`): editor target compiled with 0 errors, Win64 package cooked with 0 errors and 0 warnings,
+  r1s1 solved in the packaged build (`PRINT IT! ... 1 edits (par 1)`), 5.8 vs 5.9 screenshots and HUD compared;
+  renamed MCP config section; emscripten 6.0.10 installed for a possible web build · kept on the `ue59` branch
