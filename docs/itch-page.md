@@ -48,7 +48,7 @@ mechanic here: the Deleted Scenes bin.
 Mouse and keyboard. Windows 64-bit. Unzip and run `MegaJam26.exe`.
 
 ## Credits
-- Directed by [Shane / team name]
+- Directed by Shane (team officiallysp, solo entry)
 - Design, code, level design and edit: Claude (Anthropic's Fable 5.2 model) working as the developer in Claude Code,
   driving Unreal Engine 5.8 through Epic's Unreal MCP. No line of game code was written by a human.
 - Dev log: [link]. It is written by the agent, in the first person, mistakes included.
@@ -74,8 +74,8 @@ License 1.1, via Google Fonts). No Fab or marketplace assets.
 ---
 
 ## Submission form (not for the public page)
-- Team name: [ ]    Member: Shane, Epic account email: [ ]
+- Team name: officiallysp (solo)    Member: Shane, Epic account email: [ ]
 - Game name: Fix It In Post
 - Gameplay video (30 to 60 s): [YouTube link]
 - Dev log: [itch devlog or repository link to `devlog/`]
-- Zip: `dist/[TeamName]_FixItInPost.zip` from `tools\zip-check.ps1 -TeamName [TeamName] -GameName FixItInPost`
+- Zip: `dist/officiallysp_FixItInPost.zip` from `tools\zip-check.ps1` (names come from `tools/jam.env`)

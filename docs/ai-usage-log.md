@@ -83,3 +83,6 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
   studio's version); coverage is planned from the simulation per beat (master, star close shots, cutaways to
   levers/doors/lasers/knock-outs/the car, zoomed two-shots), checked for all 18 solved scenes with `mj.ShotsAll` and
   PIE screenshots · all kept · no human code
+- 2026-11-14 12:42–13:00 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + Unreal MCP · PIE checks of the review
+  fixes (rewatch keeps the cut, hint with no edits left, hint before the solve is done, same-scene reload, identical
+  clips), team name `officiallysp` in `tools/jam.env` and the itch page draft, final package and zip · all kept
