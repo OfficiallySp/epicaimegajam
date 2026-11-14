@@ -314,8 +314,15 @@ void AMJDirector::PlayLevel(int32 Index)
 	}
 	else
 	{
+		// A new scene opens in the cutting room with the studio's cut loaded and stopped. The film is not rolled for the
+		// player (that was a CUT! they had no part in); the ruler marks where and why it goes wrong, scrubbing shows it,
+		// and ROLL FILM on the untouched cut plays the studio's version.
 		LoadLevel(Index);
-		IntroHold = (LevelIndex == 0 || (All.IsValidIndex(LevelIndex - 1) && All[LevelIndex - 1].Reel != Level.Reel)) ? 2.6f : 0.f; // first scene of a reel
+		IntroHold = (LevelIndex == 0 || (All.IsValidIndex(LevelIndex - 1) && All[LevelIndex - 1].Reel != Level.Reel)) ? 2.6f : 0.f; // the "REEL n" card
+		// the first scene of each reel teaches a tool: point at the edit once the card is gone (Tick)
+		bTutorialHint = StarMask(Level.Id) == 0 && (Level.Id == TEXT("r1s1") || Level.Id == TEXT("r2s1") || Level.Id == TEXT("r3s1"));
+		Sfx(IntroHold > 0.f ? TEXT("roll") : TEXT("reset"));
+		return;
 	}
 	bIntro = true;
 	PlayTime = 0.f;
@@ -345,6 +352,7 @@ void AMJDirector::LoadLevel(int32 Index)
 	bFast = false;
 	bIntro = false;
 	IntroHold = 0.f;
+	bTutorialHint = false;
 	Menu = EMJMenu::None;
 	bGParked = false;
 	// The simulation is plain data, so the hint solver can chew on a copy of the scene off the game thread. Reloading
@@ -628,8 +636,13 @@ void AMJDirector::Roll()
 	LastBeatFired = -1;
 	EndHold = 0.f;
 	SelUid = -1;
-	bIntro = false;
+	bIntro = CachedCost == 0; // the untouched cut is the studio's: labelled as theirs, and its CUT! is not the player's failure
 	PendingSfx.Reset();
+	if (Stage)
+	{
+		if (Sim.IsWin() && !bIntro) Stage->PlanCoverage(Level, Sim);
+		else Stage->UpdateCoverage(false, 0.f);
+	}
 	SetPhase(EMJPhase::Screening);
 	Sfx(TEXT("roll"));
 }
@@ -637,7 +650,6 @@ void AMJDirector::Roll()
 void AMJDirector::BackToEdit()
 {
 	if (Phase == EMJPhase::Edit || Phase == EMJPhase::Title || Phase == EMJPhase::Credits) return;
-	const bool bFromIntro = bIntro;
 	PendingSfx.Reset();
 	bFast = false;
 	bIntro = false;
@@ -649,12 +661,6 @@ void AMJDirector::BackToEdit()
 		Resim();
 	}
 	SetPhase(EMJPhase::Edit);
-	// the first scene of each reel teaches a tool: point at the edit the first time the player lands in the cutting room
-	if (bFromIntro && CachedCost == 0 && StarMask(Level.Id) == 0 && (Level.Id == TEXT("r1s1") || Level.Id == TEXT("r2s1") || Level.Id == TEXT("r3s1")))
-	{
-		Hint();
-		if (HintUid >= 0) HintTime = 25.f; // a "still reviewing" note stays short
-	}
 }
 
 void AMJDirector::Scrub(float Beat)
@@ -709,15 +715,18 @@ void AMJDirector::Tick(float DeltaSeconds)
 	PhaseTime += DeltaSeconds;
 	if (ToastTime > 0.f) ToastTime -= DeltaSeconds;
 	if (HintTime > 0.f) HintTime -= DeltaSeconds;
+	// the "REEL n" card shows once, over the cutting room of the reel's first scene
+	if (IntroHold > 0.f && (Phase != EMJPhase::Edit || PhaseTime >= IntroHold)) IntroHold = 0.f;
+	if (bTutorialHint && Phase == EMJPhase::Edit && IntroHold <= 0.f && Menu == EMJMenu::None && (!HintFuture.IsValid() || HintFuture.IsReady()))
+	{
+		bTutorialHint = false;
+		if (CachedCost == 0) { Hint(); if (HintUid >= 0) HintTime = 25.f; }
+	}
 
 	if (Phase == EMJPhase::Screening && Menu == EMJMenu::None)
 	{
 		const float End = (float)Sim.EndBeat;
-		if (bIntro && PhaseTime < IntroHold)
-		{
-			// the reel card is up: hold the first frame
-		}
-		else if (PlayTime < End)
+		if (PlayTime < End)
 		{
 			const float Speed = BeatsPerSecond * (bFast ? FastMultiplier : 1.f) * (bIntro ? IntroSpeed : 1.f);
 			PlayTime = FMath::Min(End, PlayTime + DeltaSeconds * Speed);
@@ -784,15 +793,8 @@ void AMJDirector::Tick(float DeltaSeconds)
 
 	if (Stage)
 	{
-		// a cut that works gets coverage: jump cuts between the master and close-ups, ending on the star
-		int32 Shot = 0;
-		if (Phase == EMJPhase::Screening && !bIntro && Sim.IsWin())
-		{
-			static const int32 Pattern[] = { 0, 0, 1, 1, 3, 3, 0, 1, 3, 3, 1, 1 };
-			const int32 Beat = FMath::FloorToInt(PlayTime);
-			Shot = Beat >= Sim.EndBeat - 2 ? 1 : Pattern[Beat % UE_ARRAY_COUNT(Pattern)];
-		}
-		Stage->SetShot(Shot);
+		// a cut that works gets coverage, planned in Roll from the simulation so it is on whatever happens
+		Stage->UpdateCoverage(Phase == EMJPhase::Screening && !bIntro && Sim.IsWin(), PlayTime);
 		Stage->Apply(Level, Sim, PlayTime);
 	}
 }
@@ -826,7 +828,7 @@ namespace
 				const int32 I = A.Num() > 0 ? MJ::FindLevel(A[0]) : INDEX_NONE;
 				if (I != INDEX_NONE) D.LoadLevel(I);
 			});
-			RegisterDirectorCmd(TEXT("mj.Play"), TEXT("mj.Play <id|index>: open a scene the way the player sees it (theatrical cut first)."), [](AMJDirector& D, const TArray<FString>& A)
+			RegisterDirectorCmd(TEXT("mj.Play"), TEXT("mj.Play <id|index>: open a scene the way the player sees it (reel card, tutorial hint)."), [](AMJDirector& D, const TArray<FString>& A)
 			{
 				const int32 I = A.Num() > 0 ? MJ::FindLevel(A[0]) : INDEX_NONE;
 				if (I != INDEX_NONE) D.PlayLevel(I);
@@ -852,6 +854,29 @@ namespace
 			RegisterDirectorCmd(TEXT("mj.Stop"), TEXT("Back to the cutting room."), [](AMJDirector& D, const TArray<FString>&) { D.BackToEdit(); });
 			RegisterDirectorCmd(TEXT("mj.Scrub"), TEXT("mj.Scrub <beat>"), [](AMJDirector& D, const TArray<FString>& A) { D.BackToEdit(); D.Scrub(A.Num() > 0 ? FCString::Atof(*A[0]) : 0.f); });
 			RegisterDirectorCmd(TEXT("mj.ClearSave"), TEXT("Forget all progress."), [](AMJDirector& D, const TArray<FString>&) { if (D.Save) { D.Save->Stars.Reset(); D.Save->LastLevel = 0; UGameplayStatics::SaveGameToSlot(D.Save, SaveSlot, 0); } });
+			RegisterDirectorCmd(TEXT("mj.Shots"), TEXT("Plan and log the screening coverage of the current cut (camera shots, beat by beat)."), [](AMJDirector& D, const TArray<FString>&)
+			{
+				if (!D.Stage) return;
+				if (D.Sim.IsWin()) D.Stage->PlanCoverage(D.Level, D.Sim);
+				UE_LOG(LogMJ, Display, TEXT("SHOTS level=%s win=%d: %s"), *D.Level.Id, D.Sim.IsWin() ? 1 : 0, D.Sim.IsWin() ? *D.Stage->DescribeCoverage(D.Level) : TEXT("(no coverage: the cut does not work)"));
+			});
+			RegisterDirectorCmd(TEXT("mj.ShotsAll"), TEXT("Solve every scene and log the screening coverage of its best cut (development: checks the camera plan)."), [](AMJDirector& D, const TArray<FString>&)
+			{
+				if (!D.Stage) return;
+				const int32 Keep = D.LevelIndex;
+				for (int32 i = 0; i < D.NumLevels(); ++i)
+				{
+					D.LoadLevel(i);
+					FMJSolveReport Report;
+					MJ::Solve(D.Level, D.Level.MaxEdits, Report, 600000);
+					if (!Report.bHasBest) { UE_LOG(LogMJ, Warning, TEXT("SHOTS %s: no solution"), *D.Level.Id); continue; }
+					FMJSimResult Won;
+					MJ::Simulate(D.Level, Report.Best.Tracks, Won);
+					D.Stage->PlanCoverage(D.Level, Won);
+					UE_LOG(LogMJ, Display, TEXT("SHOTS %s (%d beats): %s"), *D.Level.Id, Won.EndBeat, *D.Stage->DescribeCoverage(D.Level));
+				}
+				D.LoadLevel(Keep);
+			});
 			RegisterDirectorCmd(TEXT("mj.Dump"), TEXT("Log the current cut and its outcome."), [](AMJDirector& D, const TArray<FString>&)
 			{
 				UE_LOG(LogMJ, Display, TEXT("DUMP level=%s phase=%d menu=%d intro=%d cost=%d/%d play=%.2f end=%d total=%d stars=%d/%d outcome=%s | %s"),

@@ -9,9 +9,10 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
 ## State of the game (keep this section current; it is the hand-over between sessions)
 - `Source/MegaJam26/Sim/`: engine-free beat simulation (`MJSim.cpp`), level text format + embedded campaign
   (`MJLevels.cpp`, `MJLevelData.inl`: 18 scenes in 3 reels; clip lock suffix `!` goes last, e.g. `z2=WATCH!`), brute-force solver (`MJSolver.cpp`).
-- `Game/MJDirector`: flow (Title, Edit, Screening, Failed, Printed, Credits), save (`UMJSave`), hints, audio by cue
+- `Game/MJDirector`: flow (Title, Edit, Screening, Failed, Printed, Credits; a scene opens in Edit, never auto-plays), save (`UMJSave`), hints, audio by cue
   name (`/Game/MegaJam26/Audio/SW_<cue>`), `mj.*` console commands for every player action.
-- `Game/MJStage`: builds the set from the Blender kit (`/Game/MegaJam26/Kit/SM_<piece>`, materials assigned by slot
+- `Game/MJStage`: coverage camera for winning screenings planned from the sim (`PlanCoverage`; `mj.Shots`, `mj.ShotsAll` log it);
+  builds the set from the Blender kit (`/Game/MegaJam26/Kit/SM_<piece>`, materials assigned by slot
   name), Meshy figurines (`Characters/SM_<Look>`) and desk props (`Props/SM_<Name>`); poses everything as a pure
   function of fractional beat time; lights, exposure and tilt-shift depth of field per reel.
 - `UI/SMJHud`: the whole UI is one custom-painted Slate leaf widget (immediate-mode buttons, own hit testing).

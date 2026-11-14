@@ -19,7 +19,7 @@ enum class EMJPhase : uint8
 {
 	Title,     // main menu over the desk
 	Edit,      // the cutting room: strips are editable, the playhead can be scrubbed
-	Screening, // the cut is playing (bIntro: it is the studio's theatrical cut, shown once when a scene opens)
+	Screening, // the cut is playing (bIntro: it is the studio's untouched theatrical cut, rolled by the player or rewatched)
 	Failed,    // "CUT!" - the screening ended badly
 	Printed,   // "PRINT IT!" - the scene works
 	Credits,   // every scene printed
@@ -58,7 +58,7 @@ public:
 	// ---- flow
 	void GoTitle();
 	void StartGame();                       // continue at the first scene that is not printed yet
-	void PlayLevel(int32 Index);            // load a scene and show the theatrical cut first
+	void PlayLevel(int32 Index);            // open a scene in the cutting room (reel card, tutorial hint); the open scene: rewatch the theatrical cut
 	void LoadLevel(int32 Index);            // load a scene straight into the cutting room
 	void NextLevel();
 	bool HasNextLevel() const;
@@ -127,7 +127,7 @@ public:
 	int32 HintUid = -1;
 	float HintTime = 0.f;
 	int32 FailCount = 0;    // failed screenings of the player's own cut in this scene
-	float IntroHold = 0.f;  // seconds the theatrical cut waits while a "REEL n" card is on screen
+	float IntroHold = 0.f;  // seconds the "REEL n" card stays over the cutting room when a reel's first scene opens
 
 private:
 	void Resim();
@@ -156,4 +156,5 @@ private:
 	TFuture<FMJSolveReport> HintFuture; // the solver runs on a worker thread from the moment a scene loads
 	bool bHintSolved = false, bHintOk = false;
 	FMJEditState HintTarget;
+	bool bTutorialHint = false; // show the tool hint of a reel's first scene once the card is gone and the solver is done
 };

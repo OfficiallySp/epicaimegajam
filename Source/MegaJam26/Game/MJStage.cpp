@@ -492,7 +492,8 @@ void AMJStage::Build(const FMJLevelDef& L)
 	}
 
 	StarFigure = L.StarIndex();
-	Shot = 0;
+	Coverage.Reset();
+	Shot = -1;
 	Figures.SetNum(L.Actors.Num());
 	for (int32 i = 0; i < L.Actors.Num(); ++i) BuildFigure(L.Actors[i], Figures[i]);
 
@@ -550,12 +551,14 @@ void AMJStage::ComputeCamera(EMJCamMode Mode, FVector& OutLoc, FRotator& OutRot,
 	OutLoc = Target - OutRot.Vector() * Dist;
 	OutFocus = Dist + ShiftX * FMath::Cos(PitchRad); // keep the middle of the set, not the aim point, in focus
 
-	// coverage: when the cut works the screening is shot like a film, with close-ups that follow the star
-	if (Mode == EMJCamMode::Screening && Shot > 0 && Figures.IsValidIndex(StarFigure) && Figures[StarFigure].Pivot)
+	// coverage: when the cut works the screening is shot like a film, from closer angles on whatever the action is
+	FVector Subject;
+	if (Mode == EMJCamMode::Screening && Coverage.IsValidIndex(Shot) && Coverage[Shot].Kind != 0 && CoverageCenter(Coverage[Shot], Subject))
 	{
-		const FVector Subject = Figures[StarFigure].Pivot->GetRelativeLocation();
-		const FVector Offset = Shot == 1 ? FVector(-640.f, -430.f, 470.f) : FVector(-600.f, 540.f, 620.f);
-		const FVector LookAt = Subject + FVector(50.f, Shot == 1 ? 40.f : -30.f, 55.f);
+		const FMJCoverShot& S = Coverage[Shot];
+		const bool bLow = S.Kind == 1;
+		const FVector Offset = (bLow ? FVector(-640.f, -430.f, 470.f) : FVector(-600.f, 540.f, 620.f)) * S.Zoom;
+		const FVector LookAt = Subject + FVector(50.f, bLow ? 40.f : -30.f, 55.f);
 		OutLoc = Subject + Offset;
 		OutRot = (LookAt - OutLoc).Rotation();
 		// tilt down a touch so the subject sits in the part of the frame the timeline panel leaves free
@@ -564,11 +567,260 @@ void AMJStage::ComputeCamera(EMJCamMode Mode, FVector& OutLoc, FRotator& OutRot,
 	}
 }
 
-void AMJStage::SetShot(int32 InShot)
+// ---------------------------------------------------------------------------------------------------------------------
+// coverage
+
+namespace
 {
-	if (InShot == Shot) return;
-	Shot = InShot;
-	bShotCut = true;
+	// what the audience must see a figure do: strong actions get a shot of their own, weak ones only join the star's
+	constexpr uint16 MJStrongFlags = MJStep_Pulled | MJStep_Grabbed | MJStep_Hit | MJStep_Downed | MJStep_Bonus | MJStep_Arrived;
+	constexpr uint16 MJWeakFlags = MJStep_Missed | MJStep_Bumped | MJStep_Turned;
+	constexpr float MJMaxZoom = 1.75f; // past this a close shot is nearly as wide as the master, so use the master
+
+	struct FMJWant
+	{
+		int32 Mode = 1;          // 0 = the master, 1 = on the star, 2 = a cutaway to action away from the star
+		int32 Pri = 0;           // 3 = action away from the star, 2 = action next to it, 1 = lead-in or aftermath, 0 = quiet
+		TArray<int32> Figs;      // figures to keep in frame (the star is one of them in mode 1)
+		TArray<FIntPoint> Tiles; // set pieces to keep in frame
+	};
+
+	void MJUnion(FMJWant& A, const FMJWant& B)
+	{
+		for (int32 F : B.Figs) A.Figs.AddUnique(F);
+		for (const FIntPoint& T : B.Tiles) A.Tiles.AddUnique(T);
+		A.Pri = FMath::Max(A.Pri, B.Pri);
+	}
+}
+
+bool AMJStage::CoverageCenter(const FMJCoverShot& S, FVector& Out) const
+{
+	FVector Sum = FVector::ZeroVector;
+	int32 Count = 0;
+	for (int32 F : S.Follow)
+	{
+		if (!Figures.IsValidIndex(F) || !Figures[F].Pivot) continue;
+		const FVector P = Figures[F].Pivot->GetRelativeLocation();
+		Sum += FVector(P.X, P.Y, 0.f); // not the hop: the camera should not bob with the figurines
+		++Count;
+	}
+	for (const FVector& P : S.Fixed) { Sum += P; ++Count; }
+	if (Count == 0) return false;
+	Out = Sum / (float)Count;
+	return true;
+}
+
+void AMJStage::PlanCoverage(const FMJLevelDef& L, const FMJSimResult& R)
+{
+	Coverage.Reset();
+	Shot = -1;
+	const int32 N = FMath::Min(R.EndBeat, R.Steps.Num());
+	const int32 Star = StarFigure;
+	if (N <= 0 || R.States.Num() < N + 1 || Figures.Num() != L.Actors.Num() || !Figures.IsValidIndex(Star) || !Figures[Star].bOnSet) return;
+
+	auto Pos = [&R](int32 Fig, int32 State) { return R.States[State].Actors[Fig].Pos; };
+	auto Near = [](FIntPoint A, FIntPoint B) { return FMath::Max(FMath::Abs(A.X - B.X), FMath::Abs(A.Y - B.Y)) <= 1; };
+
+	// how far a shot must pull back to keep everything in it in frame, at every beat boundary it covers
+	auto ZoomFor = [&](const FMJWant& W, int32 First, int32 Last)
+	{
+		float Reach = 0.f;
+		for (int32 s = First; s <= Last + 1; ++s)
+		{
+			TArray<FVector2f, TInlineAllocator<16>> P;
+			for (int32 F : W.Figs) { const FIntPoint Q = Pos(F, s); P.Add(FVector2f((float)Q.X, (float)Q.Y)); }
+			for (const FIntPoint& T : W.Tiles) P.Add(FVector2f((float)T.X, (float)T.Y));
+			if (P.Num() < 2) continue;
+			FVector2f C(0.f, 0.f);
+			for (const FVector2f& Q : P) C += Q;
+			C /= (float)P.Num();
+			for (const FVector2f& Q : P)
+			{
+				// grid X runs across the frame, grid Y into it, and the timeline panel leaves less room in depth
+				const FVector2f D = (Q - C) * TileSize;
+				Reach = FMath::Max(Reach, FMath::Sqrt(D.X * D.X + 2.25f * D.Y * D.Y));
+			}
+		}
+		return FMath::Max(1.f, (Reach + 40.f) / 130.f);
+	};
+
+	// 1. where the action is, beat by beat
+	TArray<FMJWant> Want;
+	Want.SetNum(N);
+	for (int32 b = 0; b < N; ++b)
+	{
+		FMJWant& W = Want[b];
+		W.Figs.Add(Star);
+		bool bAway = false, bStarActs = false;
+		auto NearStar = [&](FIntPoint P) { return Near(P, Pos(Star, b)) || Near(P, Pos(Star, b + 1)); };
+		auto AddFig = [&](int32 A, bool bStrong)
+		{
+			if (!Figures.IsValidIndex(A) || !Figures[A].bOnSet || A == Star) return;
+			const bool bClose = NearStar(Pos(A, b)) || NearStar(Pos(A, b + 1));
+			if (!bStrong && !bClose) return; // a guard turning on the far side of the set is not worth a cut
+			W.Figs.AddUnique(A);
+			W.Pri = FMath::Max(W.Pri, 2);
+			bAway |= !bClose;
+		};
+		for (int32 a = 0; a < L.Actors.Num(); ++a)
+		{
+			const FMJActorStep& St = R.Steps[b].Actors[a];
+			const uint16 Strong = MJStrongFlags | (L.Actors[a].Role == EMJRole::Crusher ? (uint16)MJStep_Moved : (uint16)0); // a car is a set piece whenever it drives
+			if (!(St.Flags & (Strong | MJWeakFlags))) continue;
+			if (a == Star) { W.Pri = FMath::Max(W.Pri, 2); bStarActs |= (St.Flags & Strong) != 0; }
+			else AddFig(a, (St.Flags & Strong) != 0);
+			if ((St.Flags & (MJStep_Hit | MJStep_Bumped)) && St.Other >= 0) AddFig(St.Other, (St.Flags & MJStep_Hit) != 0);
+		}
+		// doors, lasers, levers and plates that change state this beat, whoever or whatever flipped them
+		const uint32 Changed = R.States[b].Active ^ R.States[b + 1].Active;
+		for (const FMJFixtureVis& V : Fixtures)
+		{
+			if (V.Fix != EMJFix::Door && V.Fix != EMJFix::Laser && V.Fix != EMJFix::Lever && V.Fix != EMJFix::Plate) continue;
+			if (!(Changed & (1u << V.Chan))) continue;
+			W.Tiles.AddUnique(V.Tile);
+			W.Pri = FMath::Max(W.Pri, 2);
+			bAway |= !NearStar(V.Tile);
+		}
+		if (bAway)
+		{
+			// cut away to it; the star stays in the shot only when it is part of the action
+			if (!bStarActs) W.Figs.Remove(Star);
+			W.Mode = 2;
+			W.Pri = 3;
+		}
+	}
+
+	// 2. a cutaway starts a beat early, so the audience is looking before it happens, and holds a beat for the result
+	for (int32 b = 0; b < N; ++b)
+	{
+		if (Want[b].Pri < 3) continue;
+		for (const int32 n : { b - 1, b + 1 })
+		{
+			if (!Want.IsValidIndex(n) || Want[n].Pri > 0) continue;
+			FMJWant Copy = Want[b];
+			Copy.Pri = 1;
+			Want[n] = MoveTemp(Copy);
+		}
+	}
+	for (int32 b = 0; b < N; ++b)
+	{
+		if (Want[b].Mode != 0 && ZoomFor(Want[b], b, b) > MJMaxZoom) Want[b].Mode = 0; // too spread out for a close shot
+	}
+	// open on the master, so the audience knows the set before the close-ups (it shows whatever happens meanwhile)
+	for (int32 b = 0; b < (N > 4 ? 2 : (N > 2 ? 1 : 0)); ++b) Want[b].Mode = 0;
+
+	// 3. consecutive beats with the same kind of shot become one shot, as long as everything still fits in the frame
+	struct FSeg { FMJWant W; int32 First = 0, Last = 0; };
+	TArray<FSeg> Segs;
+	for (int32 b = 0; b < N;)
+	{
+		FSeg S{ Want[b], b, b };
+		while (S.Last + 1 < N)
+		{
+			const FMJWant& Next = Want[S.Last + 1];
+			if (Next.Mode != S.W.Mode) break;
+			if (S.W.Mode == 1 && S.Last - S.First + 1 >= 3) break; // a long walk gets a fresh angle every three beats
+			if (S.W.Mode != 0)
+			{
+				FMJWant U = S.W;
+				MJUnion(U, Next);
+				if (ZoomFor(U, S.First, S.Last + 1) > MJMaxZoom) break;
+				S.W = MoveTemp(U);
+			}
+			++S.Last;
+		}
+		Segs.Add(MoveTemp(S));
+		b = Segs.Last().Last + 1;
+	}
+
+	// 4. one beat is too short to read: borrow a beat from a neighbour that can spare one, otherwise fold it into a
+	// neighbour (two shots of a different kind fold into the master, which never leaves anything out)
+	for (int32 i = 0; i < Segs.Num() && Segs.Num() > 1;)
+	{
+		if (Segs[i].Last > Segs[i].First) { ++i; continue; }
+		bool bBorrowed = false;
+		for (const int32 n : { i - 1, i + 1 })
+		{
+			if (!Segs.IsValidIndex(n) || Segs[n].Last - Segs[n].First < 2) continue; // three beats or more can spare one
+			FSeg& X = Segs[i];
+			const int32 Beat = n < i ? Segs[n].Last : Segs[n].First;
+			const int32 First = FMath::Min(X.First, Beat), Last = FMath::Max(X.Last, Beat);
+			FMJWant U = X.W;
+			if (U.Mode != 0) MJUnion(U, Want[Beat]);
+			const bool bFits = U.Mode == 0 || ZoomFor(U, First, Last) <= MJMaxZoom;
+			if (!bFits && Want[Beat].Pri >= 3) continue; // the action of that beat would fall out of the frame
+			if (bFits) X.W = MoveTemp(U);
+			X.First = First;
+			X.Last = Last;
+			if (n < i) --Segs[n].Last; else ++Segs[n].First;
+			bBorrowed = true;
+			break;
+		}
+		if (bBorrowed) { ++i; continue; }
+		const int32 A = i > 0 ? i - 1 : i, B = A + 1;
+		FSeg M = Segs[A];
+		const FSeg& Other = Segs[B];
+		const bool bSameKind = M.W.Mode == Other.W.Mode;
+		MJUnion(M.W, Other.W);
+		M.Last = Other.Last;
+		if (!bSameKind || (M.W.Mode != 0 && ZoomFor(M.W, M.First, M.Last) > MJMaxZoom)) M.W.Mode = 0;
+		Segs[A] = MoveTemp(M);
+		Segs.RemoveAt(B);
+		i = A;
+	}
+
+	// 5. close shots alternate between the two angles, so a change of subject always reads as a cut
+	int32 Angle = 1;
+	for (const FSeg& S : Segs)
+	{
+		FMJCoverShot C;
+		C.First = S.First;
+		C.Last = S.Last;
+		if (S.W.Mode != 0)
+		{
+			C.Kind = Angle;
+			Angle = Angle == 1 ? 3 : 1;
+			C.Follow = S.W.Figs;
+			for (const FIntPoint& T : S.W.Tiles) C.Fixed.Add(TileToWorld(T));
+			C.Zoom = ZoomFor(S.W, S.First, S.Last);
+		}
+		if (Coverage.Num() > 0 && C.Kind == 0 && Coverage.Last().Kind == 0) { Coverage.Last().Last = C.Last; continue; }
+		Coverage.Add(MoveTemp(C));
+	}
+}
+
+void AMJStage::UpdateCoverage(bool bEnable, float Time)
+{
+	int32 Want = -1;
+	if (bEnable && Coverage.Num() > 0)
+	{
+		const int32 B = FMath::FloorToInt(Time);
+		Want = Coverage.Num() - 1; // the film's last frame belongs to the last shot
+		for (int32 i = 0; i < Coverage.Num(); ++i)
+		{
+			if (B <= Coverage[i].Last) { Want = i; break; }
+		}
+	}
+	if (Want == Shot) return;
+	const bool bWasClose = Coverage.IsValidIndex(Shot) && Coverage[Shot].Kind != 0;
+	const bool bClose = Coverage.IsValidIndex(Want) && Coverage[Want].Kind != 0;
+	Shot = Want;
+	if (bWasClose || bClose) bShotCut = true; // master to master is not a cut
+}
+
+FString AMJStage::DescribeCoverage(const FMJLevelDef& L) const
+{
+	FString Out;
+	for (const FMJCoverShot& C : Coverage)
+	{
+		if (!Out.IsEmpty()) Out += TEXT(" | ");
+		Out += FString::Printf(TEXT("beats %d-%d %s"), C.First + 1, C.Last + 1, C.Kind == 0 ? TEXT("MASTER") : (C.Kind == 1 ? TEXT("LOW") : TEXT("HIGH")));
+		if (C.Kind == 0) continue;
+		for (int32 F : C.Follow) Out += TEXT(" ") + (L.Actors.IsValidIndex(F) ? L.Actors[F].Name : FString(TEXT("?")));
+		if (C.Fixed.Num() > 0) Out += FString::Printf(TEXT(" +%d set piece%s"), C.Fixed.Num(), C.Fixed.Num() > 1 ? TEXT("s") : TEXT(""));
+		if (C.Zoom > 1.01f) Out += FString::Printf(TEXT(" x%.2f"), C.Zoom);
+	}
+	return Out;
 }
 
 void AMJStage::SetCamMode(EMJCamMode Mode, bool bSnap)
@@ -590,7 +842,8 @@ void AMJStage::Tick(float DeltaSeconds)
 	FVector Loc; FRotator Rot; float Focus;
 	ComputeCamera(CamMode, Loc, Rot, Focus);
 	CamTime += DeltaSeconds;
-	const bool bCoverage = CamMode == EMJCamMode::Screening && Shot > 0;
+	const bool bCoverage = CamMode == EMJCamMode::Screening && Coverage.IsValidIndex(Shot) && Coverage[Shot].Kind != 0;
+	const float CoverFstop = bCoverage ? 7.f * FMath::Square(Coverage[Shot].Zoom) : 7.f; // wider coverage keeps more of the set sharp
 	if (CamMode != EMJCamMode::Edit && !bCoverage)
 	{
 		// a slow drift so screenings and the title never look static
@@ -601,7 +854,7 @@ void AMJStage::Tick(float DeltaSeconds)
 		// a change of shot is a cut, not a move
 		bShotCut = false;
 		CamLoc = Loc; CamRot = Rot; CamFocus = Focus;
-		Camera->PostProcessSettings.DepthOfFieldFstop = bCoverage ? 7.f : DofFstop * 0.7f;
+		Camera->PostProcessSettings.DepthOfFieldFstop = bCoverage ? CoverFstop : DofFstop * 0.7f;
 	}
 	const float K = 1.f - FMath::Exp(-(bCoverage ? 7.f : CamLerpSpeed) * DeltaSeconds);
 	CamLoc = FMath::Lerp(CamLoc, Loc, K);
@@ -614,13 +867,14 @@ void AMJStage::Tick(float DeltaSeconds)
 	Camera->SetFieldOfView(CamFov);
 	Camera->PostProcessSettings.DepthOfFieldFocalDistance = CamFocus;
 	// the cutting room needs the whole set readable; the title and screenings can afford a much shallower focus
-	// close-ups track a hopping figurine, so they focus on where the camera really is and stop the lens right down
-	if (bCoverage && Figures.IsValidIndex(StarFigure) && Figures[StarFigure].Pivot)
+	// close shots track moving figurines, so they focus on where the camera really is and stop the lens right down
+	FVector Subject;
+	if (bCoverage && CoverageCenter(Coverage[Shot], Subject))
 	{
-		CamFocus = FVector::Dist(CamLoc, Figures[StarFigure].Pivot->GetRelativeLocation() + FVector(0.f, 0.f, 55.f));
+		CamFocus = FVector::Dist(CamLoc, Subject + FVector(0.f, 0.f, 55.f));
 		Camera->PostProcessSettings.DepthOfFieldFocalDistance = CamFocus;
 	}
-	const float WantFstop = bCoverage ? 7.f : (CamMode == EMJCamMode::Edit ? DofFstop : (CamMode == EMJCamMode::Title ? DofFstop * 0.45f : DofFstop * 0.7f));
+	const float WantFstop = bCoverage ? CoverFstop : (CamMode == EMJCamMode::Edit ? DofFstop : (CamMode == EMJCamMode::Title ? DofFstop * 0.45f : DofFstop * 0.7f));
 	Camera->PostProcessSettings.DepthOfFieldFstop = FMath::Lerp(Camera->PostProcessSettings.DepthOfFieldFstop, WantFstop, K);
 
 	// idle motion that does not depend on the simulation

@@ -19,9 +19,11 @@ $wavPath = Join-Path $RepoRoot 'dist\Win64\MegaJam26\Saved\BouncedWavFiles\MJCap
 $drive = Join-Path $PSScriptRoot 'drive-game.ps1'
 
 # name, level ('' = title screen), seconds, steps after the recording has started. Coordinates: SMJHud's 1920x1080 canvas.
+# Clip a: PLAY opens the cutting room under the REEL 1 card (2.6 s); SPACE rolls the untouched studio cut, which fails;
+# FIX IT IN POST, cut the soda advert, roll again.
 $clips = @(
     @{ Name = 'a-product-placement'; Level = ''; Seconds = 19; Fresh = $true
-       Steps = "wait 2.2; click 276 742; wait 5; click 960 650; wait 1.2; click 516 945; wait 0.6; key x; wait 1.2; key space; wait 6.5" },
+       Steps = "wait 2.2; click 276 742; wait 3; key space; wait 3.6; click 960 650; wait 1.2; click 516 945; wait 0.6; key x; wait 1.2; key space; wait 6.5" },
     @{ Name = 'b-hold-the-door'; Level = 'r2s1'; Seconds = 12
        Steps = "wait 1.6; drag 332 1023 516 1023; wait 0.9; key space; wait 7" },
     @{ Name = 'c-the-monologue'; Level = 'r3s2'; Seconds = 13

@@ -47,6 +47,16 @@ struct FMJFixtureVis
 UENUM()
 enum class EMJCamMode : uint8 { Edit, Screening, Title };
 
+/** One planned shot of a screening's coverage (plain data, planned from the simulation when a working cut rolls). */
+struct FMJCoverShot
+{
+	int32 Kind = 0;        // 0 = the wide master, 1 = low three-quarter from the left, 3 = high three-quarter from the right
+	int32 First = 0, Last = 0; // beats it covers
+	TArray<int32> Follow;  // figures kept in frame (the camera tracks them as they move)
+	TArray<FVector> Fixed; // set pieces kept in frame: doors, lasers, levers
+	float Zoom = 1.f;      // how far the camera pulls back from a single-figure close-up to fit everything in
+};
+
 UCLASS()
 class MEGAJAM26_API AMJStage : public AActor
 {
@@ -65,8 +75,15 @@ public:
 
 	void SetCamMode(EMJCamMode Mode, bool bSnap = false);
 
-	/** Screening coverage: 0 = the wide master, 1 = close on the star, 3 = high three-quarter. A change of shot is a hard cut. */
-	void SetShot(int32 InShot);
+	/**
+	 * Screening coverage for a cut that works. The shots are planned from the simulation, beat by beat, so the camera is
+	 * on whatever happens: the star when the action is around the star, a cutaway when a lever, door, laser, knock-out or
+	 * car matters somewhere else, the wide master when the action is spread out. A change of shot is a hard cut.
+	 */
+	void PlanCoverage(const FMJLevelDef& L, const FMJSimResult& R);
+	/** Show the planned shot for this moment of the screening; false = the wide master (no coverage). */
+	void UpdateCoverage(bool bEnable, float Time);
+	FString DescribeCoverage(const FMJLevelDef& L) const;
 
 	/** A short camera shake for impacts (punches, lasers, the car). */
 	void Kick(float Strength) { Shake = FMath::Max(Shake, Strength); }
@@ -152,8 +169,10 @@ private:
 	FRotator CamRot = FRotator::ZeroRotator;
 	float CamFocus = 3000.f;
 	bool bCamInit = false;
-	int32 Shot = 0;
+	TArray<FMJCoverShot> Coverage;
+	int32 Shot = -1; // index into Coverage, -1 = the wide master
 	bool bShotCut = false;
+	bool CoverageCenter(const FMJCoverShot& S, FVector& Out) const;
 	int32 StarFigure = 0;
 	float Shake = 0.f;
 	float CamTime = 0.f;

@@ -43,9 +43,14 @@ knock out whoever is on the tile in front); 3) the world reacts (plates, levers,
 (star dead, star seen by a guard's line of sight); 5) win check.
 
 ## 4. Loop (30 seconds)
-Watch the theatrical cut fail (the star walks into a laser because the studio added a soda advert) → read the
-script line for how the scene should end → cut / drag / restore clips, scrubbing to see the consequences →
+The scene opens in the cutting room on the studio's theatrical cut, stopped; the ruler marks where and why it goes
+wrong ("CUT! ACE was spotted by GUARD.") → read the script line for how the scene should end → cut / drag / restore
+clips, scrubbing to see the consequences (ROLL on the untouched cut plays the studio's version, if wanted) →
 **ROLL** → the scene plays as a film; "CUT!" with the reason if it fails, "PRINT IT!" and a star rating if it works.
+A cut that works is shot with coverage planned from the simulation: the master, close shots on the star, and
+cutaways to levers, doors, lasers, knock-outs and the car wherever they happen.
+(Changed 14 Nov after Shane's playtest: scenes used to auto-play the theatrical cut into an instant CUT!, and the
+win camera only followed the star, so it missed set pieces elsewhere.)
 
 ## 5. Win and lose
 - Win a scene: the script's ending happens during a screening (e.g. the star reaches the mark with the diamond).

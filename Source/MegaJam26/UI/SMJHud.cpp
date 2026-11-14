@@ -470,6 +470,13 @@ FReply SMJHud::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEven
 	PressedHot = HotAt(P);
 
 	FReply Reply = FReply::Handled().SetUserFocus(AsShared(), EFocusCause::Mouse).CaptureMouse(AsShared());
+	if (D->Phase == EMJPhase::Edit && D->PhaseTime < D->IntroHold && !IsModal())
+	{
+		// the "REEL n" card is up: the first click only takes it away
+		D->IntroHold = 0.f;
+		PressedHot = NAME_None;
+		return Reply;
+	}
 	if (!PressedHot.IsNone() || IsModal()) return Reply;
 
 	if (D->Phase == EMJPhase::Failed) { D->BackToEdit(); return Reply; }
@@ -608,6 +615,7 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 		if (K == EKeys::Escape && !KeyEvent.IsRepeat()) { D->CloseMenu(); return FReply::Handled(); }
 		return FReply::Unhandled();
 	}
+	if (D->Phase == EMJPhase::Edit && D->PhaseTime < D->IntroHold && !KeyEvent.IsRepeat()) { D->IntroHold = 0.f; return FReply::Handled(); } // the reel card: any key takes it away
 	if (K == EKeys::F) { D->bFast = true; return FReply::Handled(); }
 	if (K == EKeys::PageDown && DevKeys() && !KeyEvent.IsRepeat()) { D->LoadLevel(FMath::Min(D->LevelIndex + 1, D->NumLevels() - 1)); return FReply::Handled(); }
 	if (K == EKeys::PageUp && DevKeys() && !KeyEvent.IsRepeat()) { D->LoadLevel(D->LevelIndex - 1); return FReply::Handled(); }
@@ -915,11 +923,14 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 		P.Box(FVector2f(EndX, L.RowY0), FVector2f(L.X1 + 8.f - EndX, RowsH), Hex(0x000000, 0.42f));
 		const FLinearColor MC = D->Sim.IsWin() ? ColGreen : ColRed;
 		P.Box(FVector2f(EndX - 1.5f, L.RulerY + 4.f), FVector2f(3.f, 30.f + RowsH), MC);
-		const FString EndTag = D->Sim.IsWin() ? TEXT("PRINT") : (D->Sim.Outcome == EMJOutcome::OutOfFilm ? TEXT("FILM ENDS") : TEXT("CUT!"));
+		FString EndTag = D->Sim.IsWin() ? TEXT("PRINT") : (D->Sim.Outcome == EMJOutcome::OutOfFilm ? TEXT("FILM ENDS") : TEXT("CUT!"));
+		// in the cutting room the marker also says why the film stops, so nobody has to sit through a failure to find out
+		if (bEdit && !D->Sim.IsWin()) EndTag += TEXT("   ") + MJ::OutcomeText(Lv, D->Sim);
 		const FSlateFontInfo TF = P.Font(12.f);
 		const float TW = P.Measure(EndTag, TF).X + 14.f;
-		P.Box(FVector2f(EndX + 1.5f, L.RulerY + 2.f), FVector2f(TW, 20.f), MC, 3.f);
-		P.Text(EndTag, FVector2f(EndX + 1.5f + TW * 0.5f, L.RulerY + 12.f), TF, D->Sim.IsWin() ? ColInk : ColText, 0.5f, 0.5f);
+		const float TX = EndX + 1.5f + TW <= L.X1 + 8.f ? EndX + 1.5f : FMath::Max(L.X0 - 8.f, EndX - 1.5f - TW); // left of the marker when it would run off
+		P.Box(FVector2f(TX, L.RulerY + 2.f), FVector2f(TW, 20.f), MC, 3.f);
+		P.Text(EndTag, FVector2f(TX + TW * 0.5f, L.RulerY + 12.f), TF, D->Sim.IsWin() ? ColInk : ColText, 0.5f, 0.5f);
 	}
 
 	// ---- playhead
@@ -1031,14 +1042,14 @@ void SMJHud::PaintOverlays(FMJPaint& P, const FLayout& L) const
 		P.Text(Lv.Note, Pos + FVector2f(126.f, 20.f), F, ColText, 0.f, 0.5f);
 	}
 
-	if (D->Phase == EMJPhase::Screening && D->bIntro && D->PhaseTime < D->IntroHold)
+	if (D->Phase == EMJPhase::Edit && D->PhaseTime < D->IntroHold)
 	{
 		// a new reel opens with its own card: the name of the reel and the tool it adds
 		static const TCHAR* Names[3] = { TEXT("THE HEIST"), TEXT("THE GETAWAY"), TEXT("THE SHOWDOWN") };
 		static const TCHAR* Tools[3] = { TEXT("YOUR TOOL:  CUT"), TEXT("NEW TOOL:  SPLICE"), TEXT("NEW TOOL:  RESTORE DELETED SCENES") };
 		const int32 R = FMath::Clamp(Lv.Reel - 1, 0, 2);
 		const float A = FMath::Clamp(D->PhaseTime / 0.25f, 0.f, 1.f) * FMath::Clamp((D->IntroHold - D->PhaseTime) / 0.45f, 0.f, 1.f);
-		P.Box(FVector2f(0.f, 74.f), FVector2f(L.W, L.PanelY - 100.f), Hex(0x05060A, 0.86f * A));
+		P.Box(FVector2f(0.f, 114.f), FVector2f(L.W, L.PanelY - 114.f), Hex(0x05060A, 0.86f * A));
 		P.Text(FString::Printf(TEXT("REEL %d"), Lv.Reel), Mid + FVector2f(0.f, -118.f), P.Font(32.f), Fade(ColAmber, A), 0.5f, 0.5f);
 		P.Text(Names[R], Mid + FVector2f(0.f, -24.f), P.Font(124.f, TEXT("Black")), Fade(ColText, A), 0.5f, 0.5f);
 		P.Text(Tools[R], Mid + FVector2f(0.f, 84.f), P.Font(24.f), Fade(ColGreen, A), 0.5f, 0.5f);
