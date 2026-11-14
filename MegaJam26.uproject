@@ -2,7 +2,7 @@
   "FileVersion": 3,
   "EngineAssociation": "5.9",
   "Category": "",
-  "Description": "Fix It In Post - 2026 Epic AI MegaJam entry (theme: Director's Cut).",
+  "Description": "Fix It In Post - 2026 Epic AI MegaJam entry (theme: Director's Cut). Web build copy: editor AI plugins are off because they crash a Wasm cook.",
   "Modules": [
     {
       "Name": "MegaJam26",
@@ -12,10 +12,15 @@
   ],
   "Plugins": [
     { "Name": "AndroidFileServer", "Enabled": false },
-    { "Name": "ModelContextProtocol", "Enabled": true, "TargetAllowList": ["Editor"] },
-    { "Name": "AllToolsets", "Enabled": true, "TargetAllowList": ["Editor"] },
-    { "Name": "LiveCodingToolset", "Enabled": true, "TargetAllowList": ["Editor"] },
-    { "Name": "Terminal", "Enabled": true, "TargetAllowList": ["Editor"] },
+    { "Name": "ModelContextProtocol", "Enabled": false },
+    { "Name": "AllToolsets", "Enabled": false },
+    { "Name": "LiveCodingToolset", "Enabled": false },
+    { "Name": "Terminal", "Enabled": false },
+    { "Name": "AIAssistant", "Enabled": false },
+    { "Name": "ToolsetRegistry", "Enabled": false },
+    { "Name": "Fab", "Enabled": false },
+    { "Name": "OnlineSubsystemUtils", "Enabled": true, "PlatformDenyList": ["Wasm"] },
+    { "Name": "OnlineSubsystemNull", "Enabled": true, "PlatformDenyList": ["Wasm"] },
     { "Name": "PythonScriptPlugin", "Enabled": true, "TargetAllowList": ["Editor"] },
     { "Name": "EditorScriptingUtilities", "Enabled": true, "TargetAllowList": ["Editor"] }
   ]
