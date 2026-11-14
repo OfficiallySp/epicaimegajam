@@ -6,6 +6,8 @@
 #include "Fonts/FontMeasure.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Game/MJDirector.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
 #include "UnrealClient.h"
 #include "Misc/Paths.h"
 #include "Rendering/DrawElements.h"
@@ -24,6 +26,16 @@ namespace
 		FLinearColor C = FLinearColor::FromSRGBColor(FColor((RGB >> 16) & 0xFF, (RGB >> 8) & 0xFF, RGB & 0xFF));
 		C.A = A;
 		return C;
+	}
+
+	/**
+	 * Development keys (F9 audio capture, PageUp / PageDown scene skip) only answer in the editor or when the game is
+	 * started with -MJDev (tools/drive-game.ps1 passes it), so a player can't start a recorder or skip scenes by accident.
+	 */
+	bool DevKeys()
+	{
+		static const bool bDev = GIsEditor || FParse::Param(FCommandLine::Get(), TEXT("MJDev"));
+		return bDev;
 	}
 
 	FLinearColor Fade(const FLinearColor& C, float A) { return FLinearColor(C.R, C.G, C.B, C.A * A); }
@@ -556,7 +568,18 @@ FReply SMJHud::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent&
 FReply SMJHud::OnMouseButtonDoubleClick(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	AMJDirector* D = Director.Get();
-	if (D && D->Phase == EMJPhase::Edit && !IsModal() && HotAt(ToVirtual(MyGeometry, MouseEvent)).IsNone() && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	// Slate reports the second click of a double-click here instead of as a press. On a button that would be a second
+	// press: ROLL FILM turns into STOP under the cursor and the screening would stop as soon as it started. Only the
+	// steppers take both clicks.
+	const FName HotButton = D ? HotAt(ToVirtual(MyGeometry, MouseEvent)) : NAME_None;
+	if (!HotButton.IsNone())
+	{
+		static const FName Steppers[] = { FName("undo"), FName("redo"), FName("music-"), FName("music+"), FName("sfx-"), FName("sfx+") };
+		bool bStepper = false;
+		for (const FName& S : Steppers) bStepper |= S == HotButton;
+		if (!bStepper) return FReply::Handled();
+	}
+	if (D && D->Phase == EMJPhase::Edit && !IsModal() && HotButton.IsNone() && MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
 		const FLayout L = ComputeLayout(MyGeometry);
 		int32 T, I;
@@ -575,10 +598,10 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 	AMJDirector* D = Director.Get();
 	if (!D) return FReply::Unhandled();
 	const FKey K = KeyEvent.GetKey();
-	const bool bGo = K == EKeys::SpaceBar || K == EKeys::Enter;
+	const bool bGo = (K == EKeys::SpaceBar || K == EKeys::Enter) && !KeyEvent.IsAltDown(); // Alt+Enter is fullscreen, not ROLL
 
-	if (K == EKeys::F11 && !KeyEvent.IsRepeat()) { D->ToggleFullscreen(); return FReply::Handled(); }
-	if (K == EKeys::F9 && !KeyEvent.IsRepeat()) { D->ToggleAudioCapture(); return FReply::Handled(); }
+	if ((K == EKeys::F11 || (K == EKeys::Enter && KeyEvent.IsAltDown())) && !KeyEvent.IsRepeat()) { D->ToggleFullscreen(); return FReply::Handled(); }
+	if (K == EKeys::F9 && DevKeys() && !KeyEvent.IsRepeat()) { D->ToggleAudioCapture(); return FReply::Handled(); }
 	if (K == EKeys::F10 && !KeyEvent.IsRepeat()) { FScreenshotRequest::RequestScreenshot(true); return FReply::Handled(); } // engine-side screenshot with UI: works with the monitor off
 	if (D->Menu != EMJMenu::None)
 	{
@@ -586,8 +609,8 @@ FReply SMJHud::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent)
 		return FReply::Unhandled();
 	}
 	if (K == EKeys::F) { D->bFast = true; return FReply::Handled(); }
-	if (K == EKeys::PageDown && !KeyEvent.IsRepeat()) { D->LoadLevel(FMath::Min(D->LevelIndex + 1, D->NumLevels() - 1)); return FReply::Handled(); }
-	if (K == EKeys::PageUp && !KeyEvent.IsRepeat()) { D->LoadLevel(D->LevelIndex - 1); return FReply::Handled(); }
+	if (K == EKeys::PageDown && DevKeys() && !KeyEvent.IsRepeat()) { D->LoadLevel(FMath::Min(D->LevelIndex + 1, D->NumLevels() - 1)); return FReply::Handled(); }
+	if (K == EKeys::PageUp && DevKeys() && !KeyEvent.IsRepeat()) { D->LoadLevel(D->LevelIndex - 1); return FReply::Handled(); }
 
 	switch (D->Phase)
 	{
@@ -775,7 +798,8 @@ void SMJHud::PaintTopBar(FMJPaint& P, const FLayout& L) const
 		const FVector2f C(RX - 14.f - (Max - 1 - i) * 34.f, 54.f);
 		const bool bUsed = i < Used;
 		P.Box(C - FVector2f(13.f, 13.f), FVector2f(26.f, 26.f), bUsed ? Hex(0x2A2D36) : ColAmber, 13.f);
-		if (bUsed) P.Line(C - FVector2f(7.f, 7.f), C + FVector2f(7.f, 7.f), ColRed, 3.f), P.Line(C + FVector2f(-7.f, 7.f), C + FVector2f(7.f, -7.f), ColRed, 3.f);
+		// a spent edit within par is just spent; only edits past par (which cost the par star) get the red cross
+		if (bUsed && i >= Lv.Par) P.Line(C - FVector2f(7.f, 7.f), C + FVector2f(7.f, 7.f), ColRed, 3.f), P.Line(C + FVector2f(-7.f, 7.f), C + FVector2f(7.f, -7.f), ColRed, 3.f);
 	}
 	P.Text(FString::Printf(TEXT("%d of %d used   par %d"), Used, Max, Lv.Par), FVector2f(RX, 72.f), P.Font(13.f, TEXT("Regular")), ColDim, 1.f, 0.f);
 	if (Lv.Bonus != EMJBonus::None)

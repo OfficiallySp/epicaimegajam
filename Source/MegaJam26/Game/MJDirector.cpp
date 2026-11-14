@@ -46,11 +46,36 @@ namespace
 		return A.Act == B.Act && A.Dir == B.Dir && A.Beats == B.Beats && A.Param == B.Param && A.Label == B.Label;
 	}
 
-	bool HasUid(const TArray<FMJClip>& Track, int32 Uid)
+	/**
+	 * Marks the clips of A that have no partner in B. Identical clips are interchangeable (two STEP EASTs are the same
+	 * footage), so a clip pairs with its own uid first and with any identical clip after that; otherwise the hint would
+	 * ask the player to cut a second STEP EAST because they cut a different one than the solver did.
+	 */
+	TArray<bool> Unpaired(const TArray<FMJClip>& A, const TArray<FMJClip>& B)
 	{
-		for (const FMJClip& C : Track) { if (C.Uid == Uid) return true; }
-		return false;
+		TArray<bool> Taken, Out;
+		Taken.Init(false, B.Num());
+		Out.Init(true, A.Num());
+		for (int32 Pass = 0; Pass < 2; ++Pass)
+		{
+			for (int32 i = 0; i < A.Num(); ++i)
+			{
+				for (int32 j = 0; Out[i] && j < B.Num(); ++j)
+				{
+					if (!Taken[j] && SameClip(A[i], B[j]) && (Pass == 1 || A[i].Uid == B[j].Uid)) { Taken[j] = true; Out[i] = false; }
+				}
+			}
+		}
+		return Out;
 	}
+
+	// Pause menu "rewatch the theatrical cut": the player's cut waits here while the studio's version plays, and comes
+	// back in BackToEdit (undo history is untouched). LoadLevel drops it.
+	FMJEditState GParkedCut;
+	bool bGParked = false;
+
+	// The scene the running hint solve belongs to: reloading that scene keeps the solve instead of stacking another.
+	FString GHintLevelId;
 }
 
 AMJDirector::AMJDirector()
@@ -108,6 +133,7 @@ void AMJDirector::BeginPlay()
 
 void AMJDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	if (bCapturingAudio) ToggleAudioCapture(); // quitting mid-capture still writes the file
 	if (Hud.IsValid())
 	{
 		if (UWorld* World = GetWorld())
@@ -150,8 +176,10 @@ void AMJDirector::SetMusic(FName Cue)
 	if (Music) { Music->FadeOut(0.8f, 0.f); Music = nullptr; }
 	if (USoundBase* Sound = FindSound(Cue))
 	{
-		Music = UGameplayStatics::SpawnSound2D(this, Sound, 1.f, 1.f, 0.f, nullptr, false, true);
-		if (Music) { Music->bIsUISound = true; Music->FadeIn(0.8f, Save ? Save->MusicVolume : 0.6f); }
+		// the setting lives in the volume multiplier only (AdjustVolume changes it); the fade always runs to 1, or the two
+		// would multiply and the music could never get louder than it started
+		Music = UGameplayStatics::SpawnSound2D(this, Sound, FMath::Max(0.001f, Save ? Save->MusicVolume : 0.6f), 1.f, 0.f, nullptr, false, true);
+		if (Music) { Music->bIsUISound = true; Music->FadeIn(0.8f, 1.f); }
 	}
 }
 
@@ -268,9 +296,27 @@ void AMJDirector::StartGame()
 
 void AMJDirector::PlayLevel(int32 Index)
 {
-	LoadLevel(Index);
 	const TArray<FMJLevelDef>& All = MJ::Levels();
-	IntroHold = (LevelIndex == 0 || (All.IsValidIndex(LevelIndex - 1) && All[LevelIndex - 1].Reel != Level.Reel)) ? 2.6f : 0.f; // first scene of a reel
+	// The scene that is already open (pause menu: rewatch the theatrical cut): park the player's cut, show the studio's
+	// version, and hand the cut back in BackToEdit. Reloading would throw the player's edits and undo history away.
+	const bool bRewatch = Index == LevelIndex && Level.Actors.Num() > 0 && Phase != EMJPhase::Title && Phase != EMJPhase::Credits;
+	if (bRewatch)
+	{
+		if (!bGParked) { GParkedCut = Edit; bGParked = true; } // a second rewatch must not park the theatrical cut
+		MJ::InitEdit(Level, Edit);
+		Resim();
+		Menu = EMJMenu::None;
+		SelUid = -1;
+		HintUid = -1;
+		HintTime = 0.f;
+		bFast = false;
+		IntroHold = 0.f;
+	}
+	else
+	{
+		LoadLevel(Index);
+		IntroHold = (LevelIndex == 0 || (All.IsValidIndex(LevelIndex - 1) && All[LevelIndex - 1].Reel != Level.Reel)) ? 2.6f : 0.f; // first scene of a reel
+	}
 	bIntro = true;
 	PlayTime = 0.f;
 	LastBeatFired = -1;
@@ -300,13 +346,19 @@ void AMJDirector::LoadLevel(int32 Index)
 	bIntro = false;
 	IntroHold = 0.f;
 	Menu = EMJMenu::None;
-	// the simulation is plain data, so the hint solver can chew on a copy of the scene off the game thread
-	HintFuture = Async(EAsyncExecution::ThreadPool, [Scene = Level]()
+	bGParked = false;
+	// The simulation is plain data, so the hint solver can chew on a copy of the scene off the game thread. Reloading
+	// the same scene (restart, scene select) keeps the solve already under way instead of stacking another one.
+	if (!HintFuture.IsValid() || GHintLevelId != Level.Id)
 	{
-		FMJSolveReport Report;
-		MJ::Solve(Scene, Scene.MaxEdits, Report, 600000);
-		return Report;
-	});
+		GHintLevelId = Level.Id;
+		HintFuture = Async(EAsyncExecution::ThreadPool, [Scene = Level]()
+		{
+			FMJSolveReport Report;
+			MJ::Solve(Scene, Scene.MaxEdits, Report, 600000);
+			return Report;
+		});
+	}
 	Resim();
 	if (Stage)
 	{
@@ -498,7 +550,15 @@ void AMJDirector::Hint()
 	if (Phase != EMJPhase::Edit) return;
 	if (!bHintSolved)
 	{
-		// normally finished long ago; the two biggest scenes take a second or two, and then this waits for the rest
+		if (HintFuture.IsValid() && !HintFuture.IsReady())
+		{
+			// the biggest scenes take a few seconds to solve on a slow machine; never stall the game waiting for it
+			Sfx(TEXT("click"));
+			HintUid = -1;
+			HintText = TEXT("The studio is still reviewing the footage. Ask again in a moment.");
+			HintTime = 3.f;
+			return;
+		}
 		FMJSolveReport Report;
 		if (HintFuture.IsValid()) Report = HintFuture.Get();
 		else MJ::Solve(Level, Level.MaxEdits, Report, 600000);
@@ -512,26 +572,36 @@ void AMJDirector::Hint()
 	if (!bHintOk) { HintText = TEXT("The studio has no notes on this one."); return; }
 	if (Sim.IsWin()) { HintText = TEXT("This cut already works. Roll film!"); return; }
 
-	for (int32 t = 0; t < Edit.Tracks.Num(); ++t) // 1. something in the cut that should not be there
+	// 1. something in the cut that should not be there, 2. something missing. Out of edits, a step that gives an edit
+	// back (put a cut clip back, take a restored clip out) comes first, so the hint never asks for an edit the budget
+	// would then refuse.
+	const bool bNoEditsLeft = CachedCost >= Level.MaxEdits;
+	int32 BestRank = MAX_int32;
+	auto Offer = [&](int32 Rank, int32 Uid, FString&& Text)
 	{
-		for (const FMJClip& C : Edit.Tracks[t])
+		if (Rank < BestRank) { BestRank = Rank; HintUid = Uid; HintText = MoveTemp(Text); }
+	};
+	for (int32 t = 0; t < Edit.Tracks.Num(); ++t)
+	{
+		const FString& Who = Level.Actors[t].Name;
+		const TArray<bool> Extra = Unpaired(Edit.Tracks[t], HintTarget.Tracks[t]);
+		for (int32 i = 0; i < Extra.Num(); ++i)
 		{
-			if (HasUid(HintTarget.Tracks[t], C.Uid)) continue;
-			HintUid = C.Uid;
-			HintText = C.Orig >= 0 ? FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("%s doesn't belong in %s's strip. Take it out."), *ClipName(C), *Level.Actors[t].Name);
-			return;
+			if (!Extra[i]) continue;
+			const FMJClip& C = Edit.Tracks[t][i];
+			if (C.Orig >= 0) Offer(1, C.Uid, FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Who));
+			else Offer(bNoEditsLeft ? 0 : 1, C.Uid, FString::Printf(TEXT("%s doesn't belong in %s's strip. Take it out."), *ClipName(C), *Who));
+		}
+		const TArray<bool> Missing = Unpaired(HintTarget.Tracks[t], Edit.Tracks[t]);
+		for (int32 i = 0; i < Missing.Num(); ++i)
+		{
+			if (!Missing[i]) continue;
+			const FMJClip& C = HintTarget.Tracks[t][i];
+			if (C.Orig >= 0) Offer(bNoEditsLeft ? 0 : 2, C.Uid, FString::Printf(TEXT("%s belongs in %s's strip. Undo (Z) until it's back."), *ClipName(C), *Who));
+			else Offer(2, C.Uid, FString::Printf(TEXT("Restore %s to %s's strip from DELETED SCENES."), *ClipName(C), *Who));
 		}
 	}
-	for (int32 t = 0; t < Edit.Tracks.Num(); ++t) // 2. something missing
-	{
-		for (const FMJClip& C : HintTarget.Tracks[t])
-		{
-			if (HasUid(Edit.Tracks[t], C.Uid)) continue;
-			HintUid = C.Uid;
-			HintText = C.Orig >= 0 ? FString::Printf(TEXT("%s belongs in %s's strip. Undo that cut."), *ClipName(C), *Level.Actors[t].Name) : FString::Printf(TEXT("Restore %s to %s's strip from DELETED SCENES."), *ClipName(C), *Level.Actors[t].Name);
-			return;
-		}
-	}
+	if (BestRank != MAX_int32) return;
 	for (int32 t = 0; t < Edit.Tracks.Num(); ++t) // 3. right clips, wrong order
 	{
 		for (int32 i = 0; i < Edit.Tracks[t].Num() && i < HintTarget.Tracks[t].Num(); ++i)
@@ -571,12 +641,19 @@ void AMJDirector::BackToEdit()
 	PendingSfx.Reset();
 	bFast = false;
 	bIntro = false;
+	if (bGParked)
+	{
+		// back from rewatching the theatrical cut: the player's own cut returns
+		Edit = GParkedCut;
+		bGParked = false;
+		Resim();
+	}
 	SetPhase(EMJPhase::Edit);
 	// the first scene of each reel teaches a tool: point at the edit the first time the player lands in the cutting room
 	if (bFromIntro && CachedCost == 0 && StarMask(Level.Id) == 0 && (Level.Id == TEXT("r1s1") || Level.Id == TEXT("r2s1") || Level.Id == TEXT("r3s1")))
 	{
 		Hint();
-		HintTime = 25.f;
+		if (HintUid >= 0) HintTime = 25.f; // a "still reviewing" note stays short
 	}
 }
 
@@ -761,6 +838,7 @@ namespace
 			RegisterDirectorCmd(TEXT("mj.LoadFile"), TEXT("mj.LoadFile <path> [level]: replace the campaign with a level text file (development)."), [](AMJDirector& D, const TArray<FString>& A)
 			{
 				FString Errors;
+				GHintLevelId.Reset(); // the new file may reuse scene ids with different content
 				if (A.Num() > 0 && MJ::LoadLevelFile(A[0], Errors)) D.LoadLevel(A.Num() > 1 ? FMath::Max(0, MJ::FindLevel(A[1])) : 0);
 				if (!Errors.IsEmpty()) UE_LOG(LogMJ, Warning, TEXT("mj.LoadFile: %s"), *Errors);
 			});

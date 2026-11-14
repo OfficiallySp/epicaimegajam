@@ -47,7 +47,7 @@ $logFile = Join-Path $saveDir 'Logs\MegaJam26.log'
 if (-not $Attach) {
     Get-Process MegaJam26* -ErrorAction SilentlyContinue | Stop-Process -Force
     if ($FreshSave) { Remove-Item (Join-Path $saveDir 'SaveGames\*.sav') -Force -ErrorAction SilentlyContinue }
-    $gameArgs = @('-windowed', '-resx=1600', '-resy=900')
+    $gameArgs = @('-windowed', '-resx=1600', '-resy=900', '-MJDev') # -MJDev: F9 audio capture and PgUp/PgDn answer
     if ($Level) { $gameArgs += "-MJLevel=$Level" }
     Start-Process -FilePath $exe -ArgumentList $gameArgs | Out-Null
     Start-Sleep -Seconds 12

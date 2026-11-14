@@ -70,3 +70,10 @@ Format: `date time GMT · tool/model · what was asked · what was kept · time 
 - 2026-11-14 11:00–11:35 GMT · Claude Opus 5.5 (Claude Code in T3 Code) · Shane asked for less verbose wording without
   AI-isms: day 3 dev log, plus in-game level notes, hints, tooltips, toasts, failure line, title and credits text · all
   kept · no human code
+- 2026-11-14 02:10–12:45 GMT · Claude Opus 5.5 (Claude Code in T3 Code) + two Opus review sub-agents + Unreal MCP ·
+  Shane asked for a check for glaring issues, then for fixes: solver run over all 18 scenes, PIE screenshots, code
+  review. Fixed: pause-menu "rewatch the theatrical cut" no longer wipes the player's edits; hints give back an edit
+  first when the budget is spent and treat identical clips as interchangeable; a hint asked for before the solver is
+  done no longer stalls the game, and reloading a scene reuses its solve; music volume setting applied once;
+  double-click on a button is one press (ROLL no longer rolls and stops); Alt+Enter is fullscreen, not ROLL; F9 and
+  PgUp/PgDn need `-MJDev`; edit pips only cross out edits past par · all kept · no human code
