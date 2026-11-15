@@ -78,7 +78,7 @@ Tooling only: agent instructions, packaging / zip / upload scripts, checklists, 
 project shell. No game code, design or assets. Details in `docs/asset-declarations.md`, section A.
 
 ## Third-party content
-Unreal Engine 5.8 (Epic Games) and its default Roboto / Droid fonts. Fonts: Bebas Neue and Courier Prime (SIL Open Font
+Unreal Engine 5.9 MegaJam Preview (Epic Games) and its default Roboto / Droid fonts. Fonts: Bebas Neue and Courier Prime (SIL Open Font
 License 1.1, via Google Fonts). No Fab or marketplace assets.
 
 ---
@@ -86,7 +86,7 @@ License 1.1, via Google Fonts). No Fab or marketplace assets.
 ## Submission form (not for the public page)
 - Team name: officiallysp (solo)    Member: Shane, Epic account email: [ ]
 - Game name: Fix It In Post
-- Gameplay video (30 to 60 s): [YouTube link]
+- Gameplay video (30 to 60 s): https://youtu.be/ZDWzAcmWjiA
 - Dev log: [itch devlog link]; repository with full history: https://github.com/OfficiallySp/epicaimegajam
 - Zip: `dist/officiallysp_FixItInPost.zip` from `tools\zip-check.ps1` (names come from `tools/jam.env`)
 

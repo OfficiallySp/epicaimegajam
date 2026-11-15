@@ -35,7 +35,7 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
   expect); `gshot` is an in-engine screenshot (F10) and works with the monitors off, `shot` and `record` need a live
   display. `tools/make-video.ps1` records the 58 s gameplay video (needs a monitor on; it refuses black footage).
 - The PC drops the GPU device when it enters Modern Standby (editor dies with DXGI_ERROR_DEVICE_REMOVED): just reopen.
-- Final video: `devlog/video/FixItInPost_gameplay.mp4` (58 s, 5.9 build, 15 Nov). Package: `dist/officiallysp_FixItInPost.zip`. Open: itch page, `butler login` and `ITCH_TARGET` (Shane), YouTube upload, submission form.
+- Final video: `devlog/video/FixItInPost_gameplay.mp4` (58 s, 5.9 build, 15 Nov). YouTube: https://youtu.be/ZDWzAcmWjiA. Package: `dist/officiallysp_FixItInPost.zip`. butler is logged in. Open: itch page + `ITCH_TARGET`, upload, submission form.
 
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.
