@@ -129,6 +129,7 @@ struct FMJLevelDef
 	int32 MaxEdits = 1;
 	int32 Par = 1;
 	uint8 Tools = MJTool_Cut;
+	uint8 Hints = 0;      // 0 full (names and highlights the clip), 1 vague (names the strip only), 2 none
 	bool bNeedItem = false;
 	uint32 InvertMask = 0; // channels that start active (door open / laser off)
 	EMJBonus Bonus = EMJBonus::None;

@@ -87,6 +87,9 @@ public:
 	bool FindClip(int32 Uid, int32& OutTrack, int32& OutIndex) const;
 	int32 Cost() const { return CachedCost; }
 	int32 EditsLeft() const { return Level.MaxEdits - CachedCost; }
+	/** The cutting room only shows where and how the film ends (PRINT / CUT! on the ruler) for the studio's own cut and
+	 *  for a cut the player has screened to the end; an untested edit has to be rolled to find out. */
+	bool OutcomeKnown() const;
 
 	// ---- playback
 	void Roll();
@@ -157,4 +160,5 @@ private:
 	bool bHintSolved = false, bHintOk = false;
 	FMJEditState HintTarget;
 	bool bTutorialHint = false; // show the tool hint of a reel's first scene once the card is gone and the solver is done
+	TArray<int32> ScreenedKey;  // the last cut screened to the end (clip uids per strip), see OutcomeKnown
 };

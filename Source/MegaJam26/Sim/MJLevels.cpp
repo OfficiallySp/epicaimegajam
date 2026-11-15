@@ -296,6 +296,14 @@ namespace MJ
 				{
 					if (Opt.StartsWith(TEXT("edits="))) L.MaxEdits = FCString::Atoi(*Opt.Mid(6));
 					else if (Opt.StartsWith(TEXT("par="))) L.Par = FCString::Atoi(*Opt.Mid(4));
+					else if (Opt.StartsWith(TEXT("hints=")))
+					{
+						const FString V = Opt.Mid(6).ToLower();
+						if (V == TEXT("full")) L.Hints = 0;
+						else if (V == TEXT("vague")) L.Hints = 1;
+						else if (V == TEXT("none")) L.Hints = 2;
+						else Err(i, FString::Printf(TEXT("hints must be full, vague or none, not '%s'"), *V));
+					}
 					else if (Opt.StartsWith(TEXT("tools=")))
 					{
 						L.Tools = 0;

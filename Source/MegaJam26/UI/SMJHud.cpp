@@ -846,7 +846,7 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 
 	const float ToolRight = L.BinW > 0.f ? L.BinX - 16.f : L.W - 24.f; // the deleted-scenes bin owns the right column
 	Button(P, TEXT("menu"), FVector2f(ToolRight - 110.f, BY), FVector2f(110.f, BH), TEXT("MENU"), Hex(0x343946), D->Phase != EMJPhase::Printed, TEXT("ESC"));
-	Button(P, TEXT("hint"), FVector2f(ToolRight - 110.f - 12.f - 110.f, BY), FVector2f(110.f, BH), TEXT("HINT"), Hex(0x2B5F8A), bEdit, TEXT("H"));
+	Button(P, TEXT("hint"), FVector2f(ToolRight - 110.f - 12.f - 110.f, BY), FVector2f(110.f, BH), Lv.Hints >= 2 ? TEXT("NO NOTES") : TEXT("HINT"), Hex(0x2B5F8A), bEdit && Lv.Hints < 2, TEXT("H"));
 
 	if (D->ToastTime > 0.f && !D->Toast.IsEmpty())
 	{
@@ -917,8 +917,12 @@ void SMJHud::PaintPanel(FMJPaint& P, const FLayout& L) const
 	}
 
 	// ---- where the film stops
+	// Only a cut that has been screened (or the studio's own) shows where and how it ends: an untested edit is rolled to
+	// find out, and while it rolls the marker appears when the playhead gets there.
 	const float EndX = L.X0 + D->Sim.EndBeat * L.BeatW;
-	if (EndX < L.X1)
+	const bool bEndKnown = D->Phase == EMJPhase::Failed || D->Phase == EMJPhase::Printed || D->OutcomeKnown()
+		|| (D->Phase == EMJPhase::Screening && D->PlayTime >= (float)D->Sim.EndBeat);
+	if (EndX < L.X1 && bEndKnown)
 	{
 		P.Box(FVector2f(EndX, L.RowY0), FVector2f(L.X1 + 8.f - EndX, RowsH), Hex(0x000000, 0.42f));
 		const FLinearColor MC = D->Sim.IsWin() ? ColGreen : ColRed;

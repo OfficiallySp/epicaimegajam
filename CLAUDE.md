@@ -9,6 +9,7 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
 ## State of the game (keep this section current; it is the hand-over between sessions)
 - `Source/MegaJam26/Sim/`: engine-free beat simulation (`MJSim.cpp`), level text format + embedded campaign
   (`MJLevels.cpp`, `MJLevelData.inl`: 18 scenes in 3 reels; clip lock suffix `!` goes last, e.g. `z2=WATCH!`), brute-force solver (`MJSolver.cpp`).
+  Hints per scene: `rules ... hints=full|vague|none` (default full). The ruler's end marker shows only for the studio's cut or a cut screened to the end (`AMJDirector::OutcomeKnown`).
 - `Game/MJDirector`: flow (Title, Edit, Screening, Failed, Printed, Credits; a scene opens in Edit, never auto-plays), save (`UMJSave`), hints, audio by cue
   name (`/Game/MegaJam26/Audio/SW_<cue>`), `mj.*` console commands for every player action.
 - `Game/MJStage`: coverage camera for winning screenings planned from the sim (`PlanCoverage`; `mj.Shots`, `mj.ShotsAll` log it);

@@ -11,7 +11,7 @@
 //   actor <role> <NAME> <facing n|e|s|w> [locked] [sight=N] [look=Mesh] | <strip>
 //                                      role: star ally guard villain camera crusher prop; '_' in NAME becomes a space
 //   bin <actor index> | <clips>        deleted scenes that can be restored into that actor's strip
-//   rules edits=<max> par=<n> tools=cut,move,insert
+//   rules edits=<max> par=<n> tools=cut,move,insert [hints=full|vague|none]   (hints: default full)
 //   needitem                           the star must grab the prize (*) before reaching the mark
 //   invert <ch>[,<ch>]                 channels that start active (door open / laser off)
 //   bonus maxbeats <n> | maxedits <n> | noko | collect | keep <LABEL>   then  | <text shown to the player>
@@ -167,7 +167,7 @@ map
 #########
 endmap
 actor star ACE e | e e e u=PULL e e e
-rules edits=2 par=1 tools=cut,move
+rules edits=2 par=1 tools=cut,move hints=vague
 end
 
 level r2s3
@@ -183,7 +183,7 @@ map
 endmap
 actor star ACE e | a=WARM_UP e e e e z=BREATHE e e e
 actor guard GOON w locked | z2=GLARE ln=PHONE z3=PHONE lw=GLARE z6=GLARE
-rules edits=2 par=2 tools=cut,move
+rules edits=2 par=2 tools=cut,move hints=vague
 end
 
 level r2s4
@@ -201,7 +201,7 @@ map
 endmap
 actor star ACE n | z2=STRETCH z3=PEP_TALK n n e e a=PUNCH e e e e e
 actor guard GOON w locked | z2=IDLE w=PATROL ln=SNIFF z3=LISTEN e=PATROL le=STARE z6=STARE
-rules edits=2 par=1 tools=cut,move
+rules edits=2 par=1 tools=cut,move hints=vague
 bonus maxbeats 12 | Tight edit: the scene runs 12 beats or fewer
 end
 
@@ -221,7 +221,7 @@ endmap
 actor star ACE e locked | z3=HIDES e e e e e e e e e
 actor guard GOON w | w z=LOOK_LEFT z=LOOK_RIGHT z=LOOK_LEFT z=WAIT_FOR_CAR w w z9=STAND_GUARD
 actor crusher CAR s locked | z3=REVS s s s s
-rules edits=2 par=1 tools=cut,move
+rules edits=2 par=1 tools=cut,move hints=none
 end
 
 level r2s6
@@ -239,7 +239,7 @@ map
 endmap
 actor star ACE e | e e e e e z2=HUMS e e u=GRAB e
 actor ally PIP e | e e e e e u=PULL z=WAVE
-rules edits=3 par=2 tools=cut,move
+rules edits=3 par=2 tools=cut,move hints=none
 needitem
 end
 )MJ",
@@ -280,7 +280,7 @@ actor star ACE e locked | e e e e e e e e
 actor villain BARON w sight=0 | w! w! w! w! u=SPRING_TRAP! z2=CACKLE!
 bin 1 | z3=MONOLOGUE
 invert 0
-rules edits=1 par=1 tools=cut,move,insert
+rules edits=1 par=1 tools=cut,move,insert hints=vague
 end
 
 level r3s3
@@ -301,7 +301,7 @@ actor star ACE e | z4=WAITS e e s s e e
 actor guard GOON n locked | z9=STANDS_GUARD
 actor crusher CAR s | z2=IDLES s s=CRAWLS z3=STALLS
 bin 2 | s3=FLOOR_IT
-rules edits=2 par=1 tools=cut,move,insert
+rules edits=2 par=1 tools=cut,move,insert hints=vague
 end
 
 level r3s5
@@ -321,7 +321,7 @@ actor star ACE e locked | z6=WAITS e e e e e e e e
 actor ally PIP e | e e e e e e z2=HESITATES n
 actor villain BARON w locked | z9=GLOATS z9=GLOATS
 bin 1 | a=PUNCH
-rules edits=2 par=2 tools=cut,move,insert
+rules edits=2 par=2 tools=cut,move,insert hints=vague
 end
 
 level r3s6
@@ -339,7 +339,7 @@ endmap
 actor star ACE e locked | e e e e u=GRAB w w w w w
 actor camera CAMERA s | z=IDLE! ln=PAN! z2=WATCH! ls=PAN! z2=IDLE! ln=PAN! z2=WATCH! ls=PAN! z2=IDLE!
 bin 1 | z=GLITCH z4=LOOP_FOOTAGE
-rules edits=2 par=1 tools=cut,move,insert
+rules edits=2 par=1 tools=cut,move,insert hints=none
 needitem
 end
 
@@ -364,7 +364,7 @@ actor villain BARON w sight=0 | w! w! w! w! w! u=SPRING_TRAP! z2=CACKLE!
 bin 0 | u=GRAB
 bin 2 | z3=MONOLOGUE
 invert 0
-rules edits=3 par=3 tools=cut,move,insert
+rules edits=3 par=3 tools=cut,move,insert hints=none
 needitem
 bonus keep SODA_AD | The sponsor is at the premiere: SODA AD stays in the cut
 end

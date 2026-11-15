@@ -51,6 +51,11 @@ A cut that works is shot with coverage planned from the simulation: the master, 
 cutaways to levers, doors, lasers, knock-outs and the car wherever they happen.
 (Changed 14 Nov after Shane's playtest: scenes used to auto-play the theatrical cut into an instant CUT!, and the
 win camera only followed the star, so it missed set pieces elsewhere.)
+(Changed 15 Nov after Shane's full playthrough: the ruler used to show PRINT / CUT! for every edit before it was
+rolled, so the game told you whether a cut worked. Now only the studio's cut and a cut you have screened to the end
+show the marker; an untested edit has to be rolled. Hints are graded per scene (`rules ... hints=`): reel 1 and each
+reel's first scene name and highlight the clip, the middle of reels 2 and 3 only name the strip that needs work, and
+the last two scenes of reels 2 and 3 give no hints at all.)
 
 ## 5. Win and lose
 - Win a scene: the script's ending happens during a screening (e.g. the star reaches the mark with the diamond).

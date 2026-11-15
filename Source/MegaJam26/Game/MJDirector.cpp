@@ -41,6 +41,18 @@ namespace
 		}
 	}
 
+	// identity of a cut: the clip uids of every strip in order, strips separated by -2
+	TArray<int32> CutKey(const FMJEditState& E)
+	{
+		TArray<int32> Key;
+		for (const TArray<FMJClip>& Track : E.Tracks)
+		{
+			for (const FMJClip& C : Track) Key.Add(C.Uid);
+			Key.Add(-2);
+		}
+		return Key;
+	}
+
 	bool SameClip(const FMJClip& A, const FMJClip& B)
 	{
 		return A.Act == B.Act && A.Dir == B.Dir && A.Beats == B.Beats && A.Param == B.Param && A.Label == B.Label;
@@ -353,6 +365,7 @@ void AMJDirector::LoadLevel(int32 Index)
 	bIntro = false;
 	IntroHold = 0.f;
 	bTutorialHint = false;
+	ScreenedKey.Reset();
 	Menu = EMJMenu::None;
 	bGParked = false;
 	// The simulation is plain data, so the hint solver can chew on a copy of the scene off the game thread. Reloading
@@ -553,9 +566,23 @@ bool AMJDirector::FindClip(int32 Uid, int32& OutTrack, int32& OutIndex) const
 	return false;
 }
 
+bool AMJDirector::OutcomeKnown() const
+{
+	return CachedCost == 0 || (ScreenedKey.Num() > 0 && ScreenedKey == CutKey(Edit));
+}
+
 void AMJDirector::Hint()
 {
 	if (Phase != EMJPhase::Edit) return;
+	if (Level.Hints >= 2)
+	{
+		// the late scenes of reels 2 and 3 are the director's call
+		Sfx(TEXT("denied"));
+		HintUid = -1;
+		HintText = TEXT("No studio notes on this one. It's your call, director.");
+		HintTime = 4.f;
+		return;
+	}
 	if (!bHintSolved)
 	{
 		if (HintFuture.IsValid() && !HintFuture.IsReady())
@@ -578,16 +605,17 @@ void AMJDirector::Hint()
 	HintTime = 7.f;
 	HintUid = -1;
 	if (!bHintOk) { HintText = TEXT("The studio has no notes on this one."); return; }
-	if (Sim.IsWin()) { HintText = TEXT("This cut already works. Roll film!"); return; }
+	const bool bVague = Level.Hints == 1; // vague: name the strip that needs work, never the clip, and highlight nothing
+	if (Sim.IsWin()) { HintText = bVague ? TEXT("The studio has no notes on this cut. Roll it and see.") : TEXT("This cut already works. Roll film!"); return; }
 
 	// 1. something in the cut that should not be there, 2. something missing. Out of edits, a step that gives an edit
 	// back (put a cut clip back, take a restored clip out) comes first, so the hint never asks for an edit the budget
 	// would then refuse.
 	const bool bNoEditsLeft = CachedCost >= Level.MaxEdits;
 	int32 BestRank = MAX_int32;
-	auto Offer = [&](int32 Rank, int32 Uid, FString&& Text)
+	auto Offer = [&](int32 Rank, int32 Uid, FString&& Text, FString&& Vague)
 	{
-		if (Rank < BestRank) { BestRank = Rank; HintUid = Uid; HintText = MoveTemp(Text); }
+		if (Rank < BestRank) { BestRank = Rank; HintUid = bVague ? -1 : Uid; HintText = bVague ? MoveTemp(Vague) : MoveTemp(Text); }
 	};
 	for (int32 t = 0; t < Edit.Tracks.Num(); ++t)
 	{
@@ -597,16 +625,20 @@ void AMJDirector::Hint()
 		{
 			if (!Extra[i]) continue;
 			const FMJClip& C = Edit.Tracks[t][i];
-			if (C.Orig >= 0) Offer(1, C.Uid, FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Who));
-			else Offer(bNoEditsLeft ? 0 : 1, C.Uid, FString::Printf(TEXT("%s doesn't belong in %s's strip. Take it out."), *ClipName(C), *Who));
+			if (C.Orig >= 0) Offer(1, C.Uid, FString::Printf(TEXT("Cut %s from %s's strip."), *ClipName(C), *Who),
+				FString::Printf(TEXT("%s's strip has a moment too many."), *Who));
+			else Offer(bNoEditsLeft ? 0 : 1, C.Uid, FString::Printf(TEXT("%s doesn't belong in %s's strip. Take it out."), *ClipName(C), *Who),
+				FString::Printf(TEXT("Something you put on %s's strip doesn't belong there."), *Who));
 		}
 		const TArray<bool> Missing = Unpaired(HintTarget.Tracks[t], Edit.Tracks[t]);
 		for (int32 i = 0; i < Missing.Num(); ++i)
 		{
 			if (!Missing[i]) continue;
 			const FMJClip& C = HintTarget.Tracks[t][i];
-			if (C.Orig >= 0) Offer(bNoEditsLeft ? 0 : 2, C.Uid, FString::Printf(TEXT("%s belongs in %s's strip. Undo (Z) until it's back."), *ClipName(C), *Who));
-			else Offer(2, C.Uid, FString::Printf(TEXT("Restore %s to %s's strip from DELETED SCENES."), *ClipName(C), *Who));
+			if (C.Orig >= 0) Offer(bNoEditsLeft ? 0 : 2, C.Uid, FString::Printf(TEXT("%s belongs in %s's strip. Undo (Z) until it's back."), *ClipName(C), *Who),
+				FString::Printf(TEXT("%s's strip lost something it needs."), *Who));
+			else Offer(2, C.Uid, FString::Printf(TEXT("Restore %s to %s's strip from DELETED SCENES."), *ClipName(C), *Who),
+				FString::Printf(TEXT("Something in DELETED SCENES belongs on %s's strip."), *Who));
 		}
 	}
 	if (BestRank != MAX_int32) return;
@@ -616,8 +648,9 @@ void AMJDirector::Hint()
 		{
 			if (SameClip(Edit.Tracks[t][i], HintTarget.Tracks[t][i])) continue;
 			const FMJClip& Want = HintTarget.Tracks[t][i];
-			HintUid = Want.Uid;
-			HintText = FString::Printf(TEXT("%s should be clip %d on %s's strip."), *ClipName(Want), i + 1, *Level.Actors[t].Name);
+			HintUid = bVague ? -1 : Want.Uid;
+			HintText = bVague ? FString::Printf(TEXT("%s's strip is out of order."), *Level.Actors[t].Name)
+				: FString::Printf(TEXT("%s should be clip %d on %s's strip."), *ClipName(Want), i + 1, *Level.Actors[t].Name);
 			return;
 		}
 	}
@@ -757,6 +790,7 @@ void AMJDirector::Tick(float DeltaSeconds)
 		}
 		if (PlayTime >= End && EndHold >= EndHoldSeconds)
 		{
+			ScreenedKey = CutKey(Edit);
 			if (Sim.IsWin())
 			{
 				bStarPar = CachedCost <= Level.Par;
