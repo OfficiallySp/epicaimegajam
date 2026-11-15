@@ -191,7 +191,7 @@ title Dead Weight
 reel 2
 slug INT. LOADING BAY - NIGHT
 script ACE drops the goon on the pressure switch, and the goon keeps the door open.
-note A sleeping goon is still heavy.
+note Plates hold doors open while something stands on them.
 map
 #########
 #..d2D.X#
@@ -210,7 +210,7 @@ title Look Both Ways
 reel 2
 slug EXT. BACK ALLEY - NIGHT
 script The goon never makes it across the road. ACE strolls out.
-note The getaway car is right on time. Somebody is being very careful crossing the road.
+note The getaway car is right on time.
 map
 ######3####
 ######.####
@@ -229,7 +229,7 @@ title Two Man Job
 reel 2
 slug INT. TWIN CORRIDORS - NIGHT
 script ACE holds the switch for PIP. PIP kills the lasers for ACE. ACE takes the diamond.
-note Two strips to fix, and each depends on the other's timing.
+note Two actors, one diamond.
 map
 ###########
 #1.d..M.*X#
@@ -268,7 +268,7 @@ title The Monologue
 reel 3
 slug INT. THE BARON'S LAIR - NIGHT
 script The BARON talks too long. ACE is gone before the trap springs.
-note The Baron's contract says his lines can't be cut or moved. The studio deleted one anyway.
+note The Baron's contract says his lines can't be cut or moved.
 map
 ###########
 #1....L..X#
@@ -288,7 +288,7 @@ title Hit And Run
 reel 3
 slug EXT. THE BARON'S DRIVEWAY - NIGHT
 script The getaway car clears the road. ACE walks out through what is left of the goon.
-note Props have strips too. This one stalls.
+note Props have strips too.
 map
 ###3###
 #1....#
@@ -309,7 +309,7 @@ title Pip's Big Scene
 reel 3
 slug INT. THE BARON'S STUDY - NIGHT
 script PIP gets the drop on the BARON. ACE strolls out over him.
-note The studio deleted PIP's one heroic moment. A punch only hits the tile in front.
+note A punch only hits the tile in front.
 map
 ###########
 #1.....3.X#
@@ -329,7 +329,7 @@ title Smile For The Camera
 reel 3
 slug INT. THE BARON'S GALLERY - NIGHT
 script ACE walks in under the camera, takes the diamond and walks out the way he came.
-note The camera's sweep is locked. Two of its deleted clips survive. Line the strips up.
+note The camera's sweep is locked.
 map
 #########
 #X1...*.#
