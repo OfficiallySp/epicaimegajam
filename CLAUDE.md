@@ -35,7 +35,7 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
   expect); `gshot` is an in-engine screenshot (F10) and works with the monitors off, `shot` and `record` need a live
   display. `tools/make-video.ps1` records the 58 s gameplay video (needs a monitor on; it refuses black footage).
 - The PC drops the GPU device when it enters Modern Standby (editor dies with DXGI_ERROR_DEVICE_REMOVED): just reopen.
-- Final video: `devlog/video/FixItInPost_gameplay.mp4` (58 s, 5.9 build, 15 Nov). YouTube: https://youtu.be/ZDWzAcmWjiA. Package: `dist/officiallysp_FixItInPost.zip`. Uploaded with butler to `officiallysp/fix-it-in-post:windows` (15 Nov, commit e04f657). Open: upload display name = zip name, page text, submission form.
+- Final video: `devlog/video/FixItInPost_gameplay_1080p.mp4` (58 s, 1920x1080 upscaled from the 1600x900 capture; the jam needs 1080p+). YouTube: https://youtu.be/ZDWzAcmWjiA. Package: `dist/officiallysp_FixItInPost.zip`. Uploaded with butler to `officiallysp/fix-it-in-post:windows` (15 Nov, commit e04f657). Open: upload display name = zip name, page text, submission form.
 
 ## Dates (GMT; both machines are set to Europe/London)
 - Wed 11 Nov 19:00: theme reveal on the kickoff stream. After this: ideation on paper only.
