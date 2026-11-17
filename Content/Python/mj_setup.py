@@ -113,10 +113,17 @@ def import_mesh(src, name, folder="/Game/MegaJam26/Characters", prefix="SM_"):
     return f"{target}: tris={mesh.get_num_triangles(0)} extent=({b.box_extent.x:.0f},{b.box_extent.y:.0f},{b.box_extent.z:.0f}) meshes={len(meshes)}"
 
 
-def import_backdrops(src_dir="C:/Users/Shane/epicaimegajam/assets/src/backdrops"):
+def _src(sub):
+    """Absolute path of assets/src/<sub> in this project, wherever the project folder lives."""
+    root = unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir())
+    return (root.rstrip("/") + "/assets/src/" + sub).replace("\\", "/")
+
+
+def import_backdrops(src_dir=None):
     """Import the painted backdrop atlases (tools/make_backdrops.py) as /Game/MegaJam26/Environment/T_Backdrop_R<n>."""
     import glob
     import os
+    src_dir = src_dir or _src("backdrops")
     tasks = []
     for f in sorted(glob.glob(src_dir + "/T_Backdrop_R*.png")):
         task = unreal.AssetImportTask()
@@ -179,10 +186,11 @@ def create_backdrop(force=False):
     return "M_Backdrop created"
 
 
-def import_surfaces(src_dir="C:/Users/Shane/epicaimegajam/assets/src/surfaces"):
+def import_surfaces(src_dir=None):
     """Import the tileable surface textures (tools/make_surfaces.py) as /Game/MegaJam26/Environment/T_Surface_<Name>."""
     import glob
     import os
+    src_dir = src_dir or _src("surfaces")
     tasks = []
     for f in sorted(glob.glob(src_dir + "/T_Surface_*.png")):
         task = unreal.AssetImportTask()

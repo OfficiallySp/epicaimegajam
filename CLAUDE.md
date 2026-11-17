@@ -55,7 +55,7 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
 
 ## Machines
 - **PC, Framework Desktop (Ryzen AI Max+ 395, Radeon 8060S, 64 GB, Windows 11):** engine, editor, Unreal MCP, packaging.
-  Engine: `C:\Users\Shane\Epic Games\UE_5.9` (UE 5.9 MegaJam Preview since 14 Nov; 5.8.4 stays installed at `UE_5.8` as the fallback). Project: `C:\Users\Shane\epicaimegajam` (this repo, T3 Code's project folder).
+  Engine: `C:\Users\Shane\Epic Games\UE_5.9` (UE 5.9 MegaJam Preview since 14 Nov; 5.8.4 stays installed at `UE_5.8` as the fallback). Project: `C:\Dev\epicaimegajam` (this repo, T3 Code's project folder; moved from `C:\Users\Shane\epicaimegajam` on 17 Nov).
   Compiler: Visual Studio 2026 with the **MSVC 14.50** toolset (14.50.35739; 5.9 bans 14.51 and 14.50 builds older than 35723).
 - **Mac mini (M4, 16 GB):** docs, dev log, scripts, video editing, itch uploads, second Claude window. No engine installed.
 
