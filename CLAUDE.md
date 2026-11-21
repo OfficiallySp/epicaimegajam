@@ -27,7 +27,11 @@ scene ends as scripted. Everything is C++ (no Blueprints); the set is built proc
   `... LiveCodingToolset.LiveCodingToolset CompileLiveCoding`; screenshot = `console "shot showui"` then
   `tools/latest-shot.ps1` (copies it to `.cache/shot.png`). Header changes: `tools/rebuild.ps1` (closes only this
   project's editor, full build with `-NoHotReloadFromIDE`, reopens).
-- Claude usage is the bottleneck: about one hour of agent work per five-hour window. Commit and push at the end of
+- Two GitHub remotes (21 Nov): `origin` = `OfficiallySp/epicaimegajam` (personal, main; the jam/itch links point
+  here) and `lightforge` = `LightForgeLabsStudio/epicaimegajam` (studio mirror). Push with `git pushall` (local alias:
+  `git config alias.pushall '!f() { git push origin "$@" && git push lightforge "$@"; }; f'`). Never fold both into one
+  remote with two push URLs: Git LFS then uploads binaries to only one of them.
+- Claude usage is the bottleneck: about one hour of agent work per five-hour window. Commit and push (`git pushall`) at the end of
   every block; give bounded chores to sub-agents (Codex for Meshy/Blender/shell work, Sonnet for fal).
 - Windows System Restore rolls back `.dll`, `.exe`, `.ini` and `.inl` files inside the repo (13 Nov). After a restore:
   `git status`, `git checkout -- <rolled-back files>`, `tools/rebuild.ps1`.
